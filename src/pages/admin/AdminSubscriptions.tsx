@@ -104,6 +104,19 @@ const AdminSubscriptions = () => {
       const sub = subscriptions.find(s => s.id === id);
       if (!sub) return;
 
+      // First, cancel any existing active or pending subscriptions for this user
+      const { error: cancelError } = await supabase
+        .from('subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('user_id', sub.user_id)
+        .in('status', ['active', 'pending'])
+        .neq('id', id);
+
+      if (cancelError) {
+        console.error('Error cancelling old subscriptions:', cancelError);
+      }
+
+      // Then approve the new subscription
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + sub.plan_months);
 
@@ -137,6 +150,62 @@ const AdminSubscriptions = () => {
     }
   };
 
+  const handleFixDuplicates = async () => {
+    try {
+      // Get all users with multiple active/pending subscriptions
+      const { data: duplicateUsers, error: fetchError } = await supabase
+        .from('subscriptions')
+        .select('user_id, id, created_at, status')
+        .in('status', ['active', 'pending'])
+        .order('user_id')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      if (!duplicateUsers || duplicateUsers.length === 0) {
+        toast.success('কোনো ডুপ্লিকেট নেই');
+        return;
+      }
+
+      // Group by user_id and find duplicates
+      const userGroups = duplicateUsers.reduce((acc, sub) => {
+        if (!acc[sub.user_id]) {
+          acc[sub.user_id] = [];
+        }
+        acc[sub.user_id].push(sub);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      let cancelledCount = 0;
+
+      // For each user with multiple subscriptions
+      for (const userId in userGroups) {
+        const subs = userGroups[userId];
+        if (subs.length > 1) {
+          // Keep the first one (most recent due to ordering), cancel the rest
+          const toCancel = subs.slice(1).map(s => s.id);
+          
+          const { error: updateError } = await supabase
+            .from('subscriptions')
+            .update({ status: 'cancelled' })
+            .in('id', toCancel);
+
+          if (updateError) {
+            console.error('Error cancelling duplicates:', updateError);
+          } else {
+            cancelledCount += toCancel.length;
+          }
+        }
+      }
+
+      toast.success(`${cancelledCount}টি ডুপ্লিকেট সাবস্ক্রিপশন ক্যানসেল করা হয়েছে`);
+      fetchSubscriptions();
+    } catch (error) {
+      console.error('Error fixing duplicates:', error);
+      toast.error('ডুপ্লিকেট ফিক্স করতে ব্যর্থ');
+    }
+  };
+
   const handleCreateSubscription = async () => {
     if (!selectedUserId || !selectedPlan || !paymentMethod) {
       toast.error('সব তথ্য পূরণ করুন');
@@ -152,6 +221,24 @@ const AdminSubscriptions = () => {
     if (!plan) return;
 
     try {
+      // Check for existing active/pending subscriptions
+      const { data: existingSubs, error: checkError } = await supabase
+        .from('subscriptions')
+        .select('id, status')
+        .eq('user_id', selectedUserId)
+        .in('status', ['active', 'pending']);
+
+      if (checkError) throw checkError;
+
+      // Cancel old subscriptions if any exist
+      if (existingSubs && existingSubs.length > 0) {
+        const idsToCancel = existingSubs.map(s => s.id);
+        await supabase
+          .from('subscriptions')
+          .update({ status: 'cancelled' })
+          .in('id', idsToCancel);
+      }
+
       let subscriptionStartDate = new Date();
       let subscriptionEndDate = new Date();
 
@@ -224,6 +311,14 @@ const AdminSubscriptions = () => {
               <h1 className="text-lg sm:text-2xl font-bold font-bengali truncate">সাবস্ক্রিপশন ম্যানেজমেন্ট</h1>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              <Button 
+                variant="outline" 
+                onClick={handleFixDuplicates}
+                className="hidden sm:flex"
+              >
+                <AlertCircle className="h-4 w-4 mr-2" />
+                ডুপ্লিকেট ফিক্স করুন
+              </Button>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
