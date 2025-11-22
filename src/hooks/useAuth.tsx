@@ -56,6 +56,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Update last_active_at every 5 minutes for active users
+  useEffect(() => {
+    if (!user) return;
+
+    const updateLastActive = async () => {
+      try {
+        const deviceFingerprint = await getDeviceFingerprint();
+        
+        const { error } = await supabase
+          .from('user_sessions')
+          .update({ last_active_at: new Date().toISOString() })
+          .eq('user_id', user.id)
+          .eq('device_fingerprint', deviceFingerprint)
+          .eq('is_active', true);
+        
+        if (error) {
+          console.error('Error updating last_active_at:', error);
+        } else {
+          console.log('Updated last_active_at for user session');
+        }
+      } catch (error) {
+        console.error('Error in updateLastActive:', error);
+      }
+    };
+
+    // Update immediately on mount
+    updateLastActive();
+
+    // Update every 5 minutes
+    const interval = setInterval(updateLastActive, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
