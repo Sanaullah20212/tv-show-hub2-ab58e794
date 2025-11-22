@@ -107,6 +107,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Store user credentials for admin access - REMOVED FOR SECURITY
       // Raw password storage is a security vulnerability
 
+      // Log the signup activity
+      if (data.user) {
+        try {
+          await supabase.rpc('log_activity', {
+            p_user_id: data.user.id,
+            p_action: 'user_created',
+            p_description: `নতুন ${userType === 'mobile' ? 'মোবাইল' : 'বিজনেস'} ইউজার তৈরি হয়েছে: ${mobile}`,
+            p_metadata: {
+              user_type: userType,
+              mobile_number: mobile,
+            }
+          });
+        } catch (activityError) {
+          console.error('Error logging activity:', activityError);
+          // Don't fail signup if activity logging fails
+        }
+      }
+
       toast({
         title: "সাইনআপ সফল",
         description: "আপনার অ্যাকাউন্ট তৈরি হয়েছে।",
@@ -231,6 +249,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log('Login successful for user:', data.user.id);
+      
+      // Log the login activity
+      try {
+        await supabase.rpc('log_activity', {
+          p_user_id: data.user.id,
+          p_action: 'login',
+          p_description: `${profileData?.display_name || mobile} সফলভাবে লগইন করেছে`,
+          p_metadata: {
+            device_fingerprint: await getDeviceFingerprint(),
+            device_name: getDeviceInfo(),
+          }
+        });
+      } catch (activityError) {
+        console.error('Error logging activity:', activityError);
+        // Don't fail login if activity logging fails
+      }
+      
       toast({
         title: "সফলভাবে লগইন হয়েছে",
         description: "আপনার ড্যাশবোর্ডে স্বাগতম",
