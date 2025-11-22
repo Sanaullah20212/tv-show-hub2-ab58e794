@@ -90,11 +90,14 @@ const AdminSessions = () => {
       
       setSessions(sessionsWithProfiles);
       
-      // Merge profile data with login attempts
+      // Merge profile data with login attempts and filter out admin users
       const attemptsWithProfiles = attemptsData?.map(attempt => ({
         ...attempt,
         profiles: attempt.user_id ? profilesMap.get(attempt.user_id) : null
-      })) || [];
+      })).filter(attempt => {
+        // Exclude admin users from login attempts
+        return attempt.profiles?.role !== 'admin';
+      }) || [];
       
       console.log('Login attempts loaded:', attemptsWithProfiles.length);
       setLoginAttempts(attemptsWithProfiles);
