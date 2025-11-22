@@ -69,21 +69,24 @@ const AdminSessions = () => {
         toast.error('লগইন প্রচেষ্টা ডেটা লোড করতে ব্যর্থ');
       }
       
-      // Fetch all profiles separately
+      // Fetch all profiles separately including role
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, mobile_number, display_name');
+        .select('user_id, mobile_number, display_name, role');
       
       // Create a map of user profiles
       const profilesMap = new Map(
         profilesData?.map(p => [p.user_id, p]) || []
       );
       
-      // Merge profile data with sessions
+      // Merge profile data with sessions and filter out admin users
       const sessionsWithProfiles = sessionsData?.map(session => ({
         ...session,
         profiles: session.user_id ? profilesMap.get(session.user_id) : null
-      })) || [];
+      })).filter(session => {
+        // Exclude admin users from the sessions list
+        return session.profiles?.role !== 'admin';
+      }) || [];
       
       setSessions(sessionsWithProfiles);
       
