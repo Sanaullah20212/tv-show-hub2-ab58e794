@@ -29,14 +29,59 @@ const AdminAudit = () => {
   const fetchActivities = async () => {
     try {
       setDataLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch from activities table
+      const { data: activitiesData, error: activitiesError } = await supabase
         .from('activities')
         .select('*, profiles!inner(*)')
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (error) throw error;
-      setActivities(data || []);
+      if (activitiesError) throw activitiesError;
+
+      // Fetch from login_attempts table
+      const { data: loginAttemptsData, error: loginAttemptsError } = await supabase
+        .from('login_attempts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (loginAttemptsError) throw loginAttemptsError;
+
+      // Merge and format both data sources
+      const formattedActivities = (activitiesData || []).map((a: any) => ({
+        id: a.id,
+        type: 'activity',
+        action: a.action,
+        description: a.description,
+        mobile_number: a.profiles?.mobile_number || null,
+        created_at: a.created_at,
+        metadata: a.metadata,
+      }));
+
+      const formattedLoginAttempts = (loginAttemptsData || []).map(l => ({
+        id: l.id,
+        type: 'login_attempt',
+        action: l.attempt_type === 'success' ? 'login' : `login_${l.attempt_type}`,
+        description: `${l.attempt_type === 'success' ? 'সফল লগইন' : l.attempt_type === 'blocked' ? 'ব্লক লগইন' : 'সন্দেহজনক লগইন'}: ${l.mobile_number || 'N/A'} - ${l.city}, ${l.country}`,
+        mobile_number: l.mobile_number,
+        created_at: l.created_at,
+        metadata: {
+          ip_address: l.ip_address,
+          country: l.country,
+          city: l.city,
+          device_fingerprint: l.device_fingerprint,
+          reason: l.reason,
+          user_agent: l.user_agent,
+        },
+      }));
+
+      // Combine and sort by date
+      const combined = [...formattedActivities, ...formattedLoginAttempts]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 100);
+
+      setActivities(combined);
     } catch (error) {
       console.error('Error fetching activities:', error);
     } finally {
@@ -64,6 +109,8 @@ const AdminAudit = () => {
   const getActionIcon = (action: string) => {
     switch (action) {
       case 'login': return <LogIn className="h-4 w-4" />;
+      case 'login_blocked': return <XCircle className="h-4 w-4" />;
+      case 'login_suspicious': return <FileText className="h-4 w-4" />;
       case 'download': return <Download className="h-4 w-4" />;
       case 'subscription_created':
       case 'subscription_approved': return <CheckCircle className="h-4 w-4" />;
@@ -77,6 +124,8 @@ const AdminAudit = () => {
   const getActionColor = (action: string) => {
     switch (action) {
       case 'login': return 'bg-blue-500/10 text-blue-500';
+      case 'login_blocked': return 'bg-red-500/10 text-red-500';
+      case 'login_suspicious': return 'bg-orange-500/10 text-orange-500';
       case 'download': return 'bg-purple-500/10 text-purple-500';
       case 'subscription_approved': return 'bg-green-500/10 text-green-500';
       case 'subscription_rejected': return 'bg-red-500/10 text-red-500';
@@ -86,9 +135,10 @@ const AdminAudit = () => {
   };
 
   const filteredActivities = activities.filter(activity => {
-    const matchesSearch = activity.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         activity.profiles?.mobile_number?.includes(searchQuery);
-    const matchesFilter = filterAction === 'all' || activity.action === filterAction;
+    const matchesSearch = activity.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         activity.mobile_number?.includes(searchQuery);
+    const matchesFilter = filterAction === 'all' || activity.action === filterAction || 
+                         (filterAction === 'login' && activity.action?.startsWith('login'));
     return matchesSearch && matchesFilter;
   });
 
@@ -180,7 +230,7 @@ const AdminAudit = () => {
                               <div className="flex items-center justify-between">
                                 <p className="font-medium">{activity.description}</p>
                                 <Badge variant="outline" className="font-bengali">
-                                  {activity.profiles?.mobile_number || 'অজানা'}
+                                  {activity.mobile_number || 'অজানা'}
                                 </Badge>
                               </div>
                               <p className="text-sm text-muted-foreground">
