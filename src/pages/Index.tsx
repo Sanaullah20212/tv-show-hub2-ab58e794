@@ -125,7 +125,7 @@ const Index = () => {
               </div>
 
               {/* Contact Us Section - Redesigned */}
-              {(settings.social_links.whatsapp || settings.social_links.facebook) && (
+              {(settings?.social_links?.whatsapp || settings?.social_links?.facebook) && (
                 <div className="animate-fade-in px-4">
                   <div className="max-w-3xl mx-auto">
                     {/* Card with glass effect */}
@@ -149,14 +149,14 @@ const Index = () => {
                         
                         {/* Contact Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
-                          {settings.social_links.whatsapp && (
+                          {settings?.social_links?.whatsapp && (
                             <Button
                               asChild
                               size="lg"
                               className="bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#1da851] hover:to-[#0d7a5f] text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 font-bengali text-sm sm:text-base py-5 sm:py-6 rounded-xl font-semibold border-2 border-white/20"
                             >
                               <a
-                                href={settings.social_links.whatsapp}
+                                href={settings?.social_links?.whatsapp || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center gap-2"
@@ -166,14 +166,14 @@ const Index = () => {
                               </a>
                             </Button>
                           )}
-                          {settings.social_links.facebook && (
+                          {settings?.social_links?.facebook && (
                             <Button
                               asChild
                               size="lg"
                               className="bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9] hover:from-[#7C3AED] hover:to-[#5B21B6] text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 font-bengali text-sm sm:text-base py-5 sm:py-6 rounded-xl font-semibold border-2 border-white/20"
                             >
                               <a
-                                href={settings.social_links.facebook}
+                                href={settings?.social_links?.facebook || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center gap-2"

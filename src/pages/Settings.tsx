@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2, Save, ArrowLeft } from 'lucide-react';
 
 interface SettingsData {
   recaptcha_enabled: boolean;
@@ -16,6 +18,8 @@ interface SettingsData {
 }
 
 const Settings = () => {
+  const { user, profile, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SettingsData>({
@@ -26,8 +30,10 @@ const Settings = () => {
   });
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (user && profile) {
+      fetchSettings();
+    }
+  }, [user, profile]);
 
   const fetchSettings = async () => {
     try {
@@ -104,7 +110,7 @@ const Settings = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -112,11 +118,25 @@ const Settings = () => {
     );
   }
 
+  // Admin-only access check
+  if (!user || profile?.role !== 'admin') {
+    return <Navigate to="/auth" replace />;
+  }
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">সেটিংস</h1>
-        <p className="text-muted-foreground">অ্যাপ্লিকেশন কনফিগারেশন পরিচালনা করুন</p>
+        <Button
+          onClick={() => navigate('/admin')}
+          variant="outline"
+          size="sm"
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          এডমিন ড্যাশবোর্ডে ফিরে যান
+        </Button>
+        <h1 className="text-3xl font-bold font-bengali">সেটিংস</h1>
+        <p className="text-muted-foreground font-bengali">অ্যাপ্লিকেশন কনফিগারেশন পরিচালনা করুন</p>
       </div>
 
       <div className="space-y-6">
