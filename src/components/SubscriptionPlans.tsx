@@ -89,6 +89,35 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
 
     setLoading(true);
     try {
+      // Check for existing active or pending subscriptions
+      const { data: existingSubs, error: checkError } = await supabase
+        .from('subscriptions')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'pending']);
+
+      if (checkError) {
+        console.error('Error checking subscriptions:', checkError);
+        toast({
+          title: "চেক করতে ব্যর্থ",
+          description: "বিদ্যমান সাবস্ক্রিপশন চেক করতে সমস্যা হয়েছে।",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // If there's already an active or pending subscription, prevent duplicate
+      if (existingSubs && existingSubs.length > 0) {
+        toast({
+          title: "ডুপ্লিকেট সাবস্ক্রিপশন",
+          description: "আপনার ইতিমধ্যে একটি সক্রিয় বা পেন্ডিং সাবস্ক্রিপশন আছে।",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + paymentDialog.months);
 
