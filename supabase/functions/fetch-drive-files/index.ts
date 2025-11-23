@@ -117,14 +117,15 @@ serve(async (req) => {
     const { folderName } = await req.json();
     
     const folderPath = folderName || '';
-    console.log(`Fetching files from path: /${folderPath}`);
+    const workerPath = folderPath ? `/0:/${folderPath}` : '/0:/';
+    console.log('Fetching files from path:', workerPath);
     
     // Get worker URL based on user type and settings
     const WORKER_URL = await getWorkerConfig(supabaseClient, profile.user_type);
     console.log('Using worker URL:', WORKER_URL);
     
     // Fetch files using X-Auth-Token header
-    const fullUrl = folderPath ? `${WORKER_URL}${folderPath}` : `${WORKER_URL}/0:/`;
+    const fullUrl = `${WORKER_URL}${workerPath}`;
     console.log('Full URL:', fullUrl);
     
     const filesResponse = await fetch(fullUrl, {
@@ -146,15 +147,43 @@ serve(async (req) => {
       throw new Error(`Failed to fetch files: ${filesResponse.status}. Response: ${htmlText.substring(0, 200)}`);
     }
 
-    // Parse HTML to extract file information
-    // Try to find API endpoint or data embedded in HTML
-    
+    // Try to parse JSON response first
     const files: any[] = [];
-    
-    // Check if there's JSON data embedded in the HTML
-    const scriptMatch = htmlText.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
-    
-    if (scriptMatch) {
+    try {
+      const json = JSON.parse(htmlText);
+      if (json && Array.isArray(json.files)) {
+        console.log(`Parsed ${json.files.length} items from JSON response`);
+        for (const item of json.files as any[]) {
+          const isFolder = !!item.isFolder;
+          const path = item.path as string | undefined;
+          files.push({
+            id: path || item.fileId || item.name,
+            name: item.name,
+            size: item.size || (item.rawSize != null ? String(item.rawSize) : '0'),
+            downloadUrl: item.downloadPath
+              ? `${WORKER_URL}${item.downloadPath}`
+              : path
+                ? `${WORKER_URL}/0:/${path}`
+                : `${WORKER_URL}/0:/`,
+            mimeType: item.mimeType || (isFolder ? 'folder' : 'application/octet-stream'),
+            isFolder,
+            path,
+          });
+        }
+      }
+    } catch (e) {
+      console.log('Response is not pure JSON, falling back to HTML parsing:', e);
+    }
+
+    // If JSON parsing didn't produce any files, fall back to HTML parsing
+    if (files.length === 0) {
+      // Parse HTML to extract file information
+      // Try to find API endpoint or data embedded in HTML
+      
+      // Check if there's JSON data embedded in the HTML inside script tags
+      const scriptMatch = htmlText.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
+      
+      if (scriptMatch) {
       console.log(`Found ${scriptMatch.length} script tags`);
       
       // Look for file data in script tags
@@ -185,41 +214,41 @@ serve(async (req) => {
           }
         }
       }
-    }
-    
-    // If no files found in scripts, try HTML parsing
-    if (files.length === 0) {
-      const linkRegex = /<a[^>]*href=["']([^"']+)["'][^>]*>([^<]+)<\/a>/gi;
-      const allLinks = [...htmlText.matchAll(linkRegex)];
       
-      console.log(`Found ${allLinks.length} total links in HTML`);
-      
-      for (const match of allLinks) {
-        const href = match[1];
-        const name = match[2].trim();
+      // If no files found in scripts, try HTML parsing
+      if (files.length === 0) {
+        const linkRegex = /<a[^>]*href=["']([^"']+)["'][^>]*>([^<]+)<\/a>/gi;
+        const allLinks = [...htmlText.matchAll(linkRegex)];
         
-        // Skip navigation links, empty, or parent directory
-        if (!name || name === '..' || name === '.' || 
-            href.includes('login') || href.includes('logout') || 
-            href === '/' || href === '#' || name === folderName) {
-          continue;
-        }
+        console.log(`Found ${allLinks.length} total links in HTML`);
         
-        // Check if it's a valid file/folder link
-        if (href.startsWith('/0:') || href.startsWith('0:') || 
-            (href.startsWith('/') && !href.includes('http') && href.length > 1)) {
+        for (const match of allLinks) {
+          const href = match[1];
+          const name = match[2].trim();
           
-          const cleanHref = href.startsWith('/') ? href : '/' + href;
-          const isFolder = href.endsWith('/');
+          // Skip navigation links, empty, or parent directory
+          if (!name || name === '..' || name === '.' || 
+              href.includes('login') || href.includes('logout') || 
+              href === '/' || href === '#' || name === folderName) {
+            continue;
+          }
           
-          files.push({
-            id: cleanHref,
-            name: name,
-            size: '0',
-            downloadUrl: `${WORKER_URL}${cleanHref}`,
-            mimeType: isFolder ? 'folder' : 'application/octet-stream',
-            isFolder: isFolder,
-          });
+          // Check if it's a valid file/folder link
+          if (href.startsWith('/0:') || href.startsWith('0:') || 
+              (href.startsWith('/') && !href.includes('http') && href.length > 1)) {
+            
+            const cleanHref = href.startsWith('/') ? href : '/' + href;
+            const isFolder = href.endsWith('/');
+            
+            files.push({
+              id: cleanHref,
+              name: name,
+              size: '0',
+              downloadUrl: `${WORKER_URL}${cleanHref}`,
+              mimeType: isFolder ? 'folder' : 'application/octet-stream',
+              isFolder: isFolder,
+            });
+          }
         }
       }
     }

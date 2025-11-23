@@ -20,6 +20,7 @@ interface DriveFile {
   downloadUrl: string;
   mimeType: string;
   isFolder: boolean;
+  path?: string;
 }
 
 interface CustomFileBrowserProps {
@@ -90,9 +91,10 @@ const CustomFileBrowser = ({ userType }: CustomFileBrowserProps) => {
     }
   };
 
-  const handleFolderClick = (folderName: string) => {
+  const handleFolderClick = (folder: DriveFile) => {
     setPathHistory([...pathHistory, currentPath]);
-    const newPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+    const segment = folder.path || folder.name;
+    const newPath = currentPath ? `${currentPath}/${segment}` : segment;
     setCurrentPath(newPath);
   };
 
@@ -285,7 +287,7 @@ const CustomFileBrowser = ({ userType }: CustomFileBrowserProps) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleFolderClick(file.name)}
+                      onClick={() => handleFolderClick(file)}
                       className="gap-2 flex-shrink-0"
                     >
                       খুলুন
