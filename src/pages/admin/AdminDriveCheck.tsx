@@ -7,7 +7,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { HardDrive, Loader2 } from "lucide-react";
-import CustomFileBrowser from "@/components/CustomFileBrowser";
+import DriveExplorer from "@/components/DriveExplorer";
 
 export default function AdminDriveCheck() {
   const { user, signOut } = useAuth();
@@ -101,13 +101,13 @@ export default function AdminDriveCheck() {
                   
                   <TabsContent value="mobile" className="mt-6">
                     <div className="rounded-lg border bg-card">
-                      <CustomFileBrowser userType="mobile" />
+                      <DriveExplorer userType="mobile" />
                     </div>
                   </TabsContent>
                   
                   <TabsContent value="business" className="mt-6">
                     <div className="rounded-lg border bg-card">
-                      <CustomFileBrowser userType="business" />
+                      <DriveExplorer userType="business" />
                     </div>
                   </TabsContent>
                 </Tabs>
