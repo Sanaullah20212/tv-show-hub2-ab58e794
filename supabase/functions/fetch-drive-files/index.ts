@@ -114,14 +114,23 @@ serve(async (req) => {
       }
     }
 
-    const { folderName } = await req.json();
+    const { folderName, userType: requestedUserType } = await req.json();
     
     const folderPath = folderName || '';
     const workerPath = folderPath ? `/0:/${folderPath}` : '/0:/';
     console.log('Fetching files from path:', workerPath);
     
+    // Decide which user type's drive to use
+    const requestedUserTypeSanitized =
+      requestedUserType === 'mobile' || requestedUserType === 'business'
+        ? requestedUserType
+        : null;
+    const effectiveUserType = isAdmin && requestedUserTypeSanitized
+      ? requestedUserTypeSanitized
+      : profile.user_type;
+    
     // Get worker URL based on user type and settings
-    const WORKER_URL = await getWorkerConfig(supabaseClient, profile.user_type);
+    const WORKER_URL = await getWorkerConfig(supabaseClient, effectiveUserType);
     console.log('Using worker URL:', WORKER_URL);
     
     // Fetch files using X-Auth-Token header
