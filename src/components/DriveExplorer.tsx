@@ -112,6 +112,8 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
       'X-Auth-Token': WORKER_CONFIG.WORKER_AUTH_TOKEN,
     };
 
+    console.log('[DriveExplorer] userType:', userType, 'path:', path, 'workerBaseUrl:', workerBaseUrl, 'fullUrl:', fullUrl);
+
     try {
       const response = await fetch(fullUrl, { headers });
 
