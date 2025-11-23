@@ -76,7 +76,7 @@ serve(async (req) => {
     // Get user profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('user_type')
+      .select('user_type, role')
       .eq('user_id', user.id)
       .single();
 
@@ -85,28 +85,33 @@ serve(async (req) => {
       throw new Error('Profile not found');
     }
 
-    // Check active subscription
-    const { data: subscription, error: subError } = await supabaseClient
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .gt('end_date', new Date().toISOString())
-      .maybeSingle();
+    // Check if user is admin - admins bypass subscription check
+    const isAdmin = profile.role === 'admin';
+    
+    if (!isAdmin) {
+      // Check active subscription for non-admin users
+      const { data: subscription, error: subError } = await supabaseClient
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .gt('end_date', new Date().toISOString())
+        .maybeSingle();
 
-    if (subError) {
-      console.error('Subscription error:', subError);
-      throw new Error('Error checking subscription');
-    }
+      if (subError) {
+        console.error('Subscription error:', subError);
+        throw new Error('Error checking subscription');
+      }
 
-    if (!subscription) {
-      return new Response(
-        JSON.stringify({ error: 'No active subscription', files: [] }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      if (!subscription) {
+        return new Response(
+          JSON.stringify({ error: 'No active subscription', files: [] }),
+          { 
+            status: 403, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
     }
 
     const { folderName } = await req.json();
