@@ -141,10 +141,13 @@ serve(async (req) => {
     
     // Get worker URL based on user type and settings
     const WORKER_URL = await getWorkerConfig(supabaseClient, effectiveUserType);
-    console.log('Using worker URL:', WORKER_URL);
+    
+    // Remove trailing slash from worker URL to avoid double slashes
+    const cleanWorkerUrl = WORKER_URL.replace(/\/$/, '');
+    console.log('Using worker URL (cleaned):', cleanWorkerUrl);
     
     // Fetch files using X-Auth-Token header
-    const fullUrl = `${WORKER_URL}${workerPath}`;
+    const fullUrl = `${cleanWorkerUrl}${workerPath}`;
     console.log('Full URL:', fullUrl);
     
     const filesResponse = await fetch(fullUrl, {
@@ -188,10 +191,10 @@ serve(async (req) => {
             name: item.name,
             size: item.size || (item.rawSize != null ? String(item.rawSize) : '0'),
             downloadUrl: item.downloadPath
-              ? `${WORKER_URL}${item.downloadPath}`
+              ? `${cleanWorkerUrl}${item.downloadPath}`
               : path
-                ? `${WORKER_URL}/0:/${path}`
-                : `${WORKER_URL}/0:/`,
+                ? `${cleanWorkerUrl}/0:/${path}`
+                : `${cleanWorkerUrl}/0:/`,
             mimeType: item.mimeType || (isFolder ? 'folder' : 'application/octet-stream'),
             isFolder,
             path,
@@ -229,7 +232,7 @@ serve(async (req) => {
                     id: item.id || item.path || item.name,
                     name: item.name || item.fileName,
                     size: item.size || '0',
-                    downloadUrl: `${WORKER_URL}${item.path || item.url || '/' + item.name}`,
+                    downloadUrl: `${cleanWorkerUrl}${item.path || item.url || '/' + item.name}`,
                     mimeType: item.mimeType || 'application/octet-stream',
                     isFolder: item.isFolder || item.type === 'folder',
                   });
@@ -271,7 +274,7 @@ serve(async (req) => {
               id: cleanHref,
               name: name,
               size: '0',
-              downloadUrl: `${WORKER_URL}${cleanHref}`,
+              downloadUrl: `${cleanWorkerUrl}${cleanHref}`,
               mimeType: isFolder ? 'folder' : 'application/octet-stream',
               isFolder: isFolder,
             });
