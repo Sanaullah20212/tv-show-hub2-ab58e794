@@ -61,7 +61,7 @@ const CustomFileBrowser = ({ userType }: CustomFileBrowserProps) => {
       console.log('Fetching files from path:', folderPath);
       
       const { data, error } = await supabase.functions.invoke('fetch-drive-files', {
-        body: { folderName: folderPath },
+        body: { folderName: folderPath, userType },
       });
 
       if (error) {
@@ -93,8 +93,8 @@ const CustomFileBrowser = ({ userType }: CustomFileBrowserProps) => {
 
   const handleFolderClick = (folder: DriveFile) => {
     setPathHistory([...pathHistory, currentPath]);
-    const segment = folder.path || folder.name;
-    const newPath = currentPath ? `${currentPath}/${segment}` : segment;
+    // Use absolute path from worker if available to avoid duplicated segments
+    const newPath = folder.path || (currentPath ? `${currentPath}/${folder.name}` : folder.name);
     setCurrentPath(newPath);
   };
 
@@ -226,10 +226,10 @@ const CustomFileBrowser = ({ userType }: CustomFileBrowserProps) => {
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
             {currentPath && (
-              <p className="text-sm text-muted-foreground">
-                পথ: /{currentPath}
-              </p>
-            )}
+               <p className="text-sm text-muted-foreground">
+                 পথ: /{decodeURI(currentPath || '')}
+               </p>
+             )}
             <div className="flex items-center gap-2 ml-auto">
               <Select value={sortBy} onValueChange={(value: 'name' | 'size' | 'date') => setSortBy(value)}>
                 <SelectTrigger className="w-[140px] h-9">
