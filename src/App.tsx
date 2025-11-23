@@ -18,6 +18,7 @@ import AdminSessions from "./pages/admin/AdminSessions";
 import AdminPasswords from "./pages/admin/AdminPasswords";
 import AdminAudit from "./pages/admin/AdminAudit";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminDriveCheck from "./pages/admin/AdminDriveCheck";
 import TvAccess from "./pages/TvAccess";
 import DriveAccess from "./pages/DriveAccess";
 import Plans from "./pages/Plans";
@@ -56,6 +57,7 @@ const App = () => {
                 <Route path="/admin/passwords" element={<AdminPasswords />} />
                 <Route path="/admin/audit" element={<AdminAudit />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
+                <Route path="/admin/drive-check" element={<AdminDriveCheck />} />
                 <Route path="/tv-access" element={<TvAccess />} />
                 <Route path="/drive-access" element={<DriveAccess />} />
                 <Route path="/plans" element={<Plans />} />
