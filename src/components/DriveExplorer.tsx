@@ -2,17 +2,30 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, ArrowLeft, Folder, Film, Image, FileText, File, Download, ArrowUpDown, Search, X } from 'lucide-react';
+import {
+  Loader2,
+  ArrowLeft,
+  Folder,
+  Film,
+  Image,
+  FileText,
+  File,
+  Download,
+  ArrowUpDown,
+  Search,
+  X,
+} from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
-import { WORKER_CONFIG, getWorkerUrl } from '@/config/workerConfig';
+import { getWorkerUrl } from '@/config/workerConfig';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface DriveFile {
   name: string;
@@ -58,7 +71,7 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
       if (!a.isFolder && b.isFolder) return 1;
 
       let comparison = 0;
-      
+
       if (sortBy === 'name') {
         comparison = a.name.localeCompare(b.name, 'bn');
       } else if (sortBy === 'size') {
@@ -72,18 +85,16 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
 
       return sortOrder === 'asc' ? comparison : -comparison;
     });
-    
+
     return sorted;
   };
 
   // Filter files based on search query
   const filterFiles = (filesToFilter: DriveFile[]) => {
     if (!searchQuery.trim()) return filesToFilter;
-    
+
     const query = searchQuery.toLowerCase();
-    return filesToFilter.filter(file => 
-      file.name.toLowerCase().includes(query)
-    );
+    return filesToFilter.filter((file) => file.name.toLowerCase().includes(query));
   };
 
   const filteredAndSortedFiles = sortFiles(filterFiles(files));
@@ -100,58 +111,90 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
     return <File className="h-6 w-6 text-slate-500" />;
   };
 
-  // Fetch files from Worker
-  const fetchFiles = useCallback(async (path: string) => {
-    setIsLoading(true);
-    setIsNavigating(true);
-    setError(null);
+  // Fetch files via Supabase Edge Function so admin & user see same view
+  const fetchFiles = useCallback(
+    async (path: string) => {
+      setIsLoading(true);
+      setIsNavigating(true);
+      setError(null);
 
-    const workerBaseUrl = await getWorkerUrl(userType);
-    const fullUrl = `${workerBaseUrl}${WORKER_CONFIG.GDI_PATH_PREFIX}${encodeURI(path)}`;
-    const headers = {
-      'X-Auth-Token': WORKER_CONFIG.WORKER_AUTH_TOKEN,
-    };
+      try {
+        const { data, error } = await supabase.functions.invoke('fetch-drive-files', {
+          body: {
+            folderName: path,
+            userType,
+          },
+        });
 
-    try {
-      const response = await fetch(fullUrl, { headers });
-
-      if (response.status === 401) {
-        throw new Error('অ্যাক্সেস অস্বীকৃত। অবৈধ X-Auth-Token।');
-      }
-      
-      if (!response.ok) {
-        const errJson = await response.json();
-        let errorMessage = errJson.message || errJson.error || `Worker Error: ${response.status}`;
-        
-        // Handle specific Worker errors with helpful Bengali messages
-        if (errorMessage.includes('Token refresh failed') || errorMessage.includes('OAuth client was not found')) {
-          errorMessage = '⚠️ Worker কনফিগারেশন সমস্যা: Google OAuth credentials invalid বা expired। \n\nসমাধান:\n১. Google Cloud Console এ যান\n২. OAuth 2.0 Client ID চেক করুন\n৩. Worker এ নতুন CLIENT_ID, CLIENT_SECRET এবং REFRESH_TOKEN আপডেট করুন';
+        if (error) {
+          throw new Error(error.message || 'ড্রাইভ ডেটা লোড করতে ব্যর্থ।');
         }
-        
-        throw new Error(errorMessage);
-      }
 
-      const data = await response.json();
-      setFiles(data.files || []);
-      setCurrentPath(data.currentPath || '');
-      setCurrentFolderName(data.currentFolderName || 'রুট');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'ড্রাইভ ডেটা লোড করতে ব্যর্থ।';
-      console.error('Drive Explorer Error:', err);
-      setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "ত্রুটি",
-        description: errorMessage.split('\n')[0], // Show first line in toast
-      });
-    } finally {
-      setIsLoading(false);
-      setIsNavigating(false);
-    }
-  }, [userType]);
+        const response = (data || {}) as {
+          files?: {
+            name: string;
+            size: string | null;
+            isFolder: boolean;
+            path?: string;
+            downloadUrl?: string | null;
+            mimeType: string;
+            fileId?: string;
+            rawSize?: number;
+          }[];
+          currentPath?: string;
+          currentFolderName?: string;
+          error?: string;
+        };
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        const transformedFiles: DriveFile[] = (response.files || []).map((item) => ({
+          name: item.name,
+          size: item.size,
+          isFolder: item.isFolder,
+          path: item.path || '',
+          downloadPath: item.downloadUrl || null,
+          mimeType: item.mimeType,
+          fileId: item.fileId,
+          rawSize: item.rawSize,
+        }));
+
+        setFiles(transformedFiles);
+        setCurrentPath(response.currentPath ?? path ?? '');
+        setCurrentFolderName(
+          response.currentFolderName ??
+            (path
+              ? decodeURIComponent(
+                  path
+                    .split(/[\/\\]/)
+                    .filter((segment: string) => segment && segment !== '.')
+                    .slice(-1)[0]
+                )
+              : 'রুট')
+        );
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'ড্রাইভ ডেটা লোড করতে ব্যর্থ।';
+        console.error('Drive Explorer Error:', err);
+        setError(errorMessage);
+        toast({
+          variant: 'destructive',
+          title: 'ত্রুটি',
+          description: errorMessage.split('\n')[0], // Show first line in toast
+        });
+      } finally {
+        setIsLoading(false);
+        setIsNavigating(false);
+      }
+    },
+    [userType]
+  );
 
   useEffect(() => {
     fetchFiles(currentPath);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle navigation and download
@@ -163,18 +206,30 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
     } else {
       // Show downloading state for this specific file
       setDownloadingFile(file.name);
-      
+
       try {
-        const workerBaseUrl = await getWorkerUrl(userType);
-        
-        // Use instant download API if fileId and rawSize are available
         let fullDownloadUrl: string;
-        if (file.fileId && file.rawSize !== undefined) {
-          // New instant download format (no auth token needed)
-          fullDownloadUrl = `${workerBaseUrl}api/download/?id=${file.fileId}&name=${encodeURIComponent(file.name)}&size=${file.rawSize}&mime=${encodeURIComponent(file.mimeType)}`;
+
+        if (file.downloadPath && file.downloadPath.startsWith('http')) {
+          // Edge function already returned full download URL
+          fullDownloadUrl = file.downloadPath;
         } else {
-          // Fallback to old download path method
-          fullDownloadUrl = `${workerBaseUrl}${file.downloadPath?.replace('/', '')}`;
+          const workerBaseUrl = await getWorkerUrl(userType);
+
+          // Use instant download API if fileId and rawSize are available
+          if (file.fileId && file.rawSize !== undefined) {
+            // New instant download format (no auth token needed)
+            fullDownloadUrl = `${workerBaseUrl}api/download/?id=${file.fileId}&name=${encodeURIComponent(
+              file.name
+            )}&size=${file.rawSize}&mime=${encodeURIComponent(file.mimeType)}`;
+          } else if (file.downloadPath) {
+            const cleanedPath = file.downloadPath.startsWith('/')
+              ? file.downloadPath
+              : `/${file.downloadPath}`;
+            fullDownloadUrl = `${workerBaseUrl}${cleanedPath}`;
+          } else {
+            fullDownloadUrl = workerBaseUrl;
+          }
         }
 
         // Direct download without opening new tab
@@ -185,20 +240,20 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         toast({
-          title: "ডাউনলোড শুরু",
+          title: 'ডাউনলোড শুরু',
           description: `${file.name} ডাউনলোড হচ্ছে...`,
         });
-        
+
         // Reset downloading state after a short delay
         setTimeout(() => setDownloadingFile(null), 1000);
       } catch (err) {
         console.error('Download error:', err);
         toast({
-          variant: "destructive",
-          title: "ডাউনলোড ত্রুটি",
-          description: "ফাইল ডাউনলোড করতে সমস্যা হয়েছে।",
+          variant: 'destructive',
+          title: 'ডাউনলোড ত্রুটি',
+          description: 'ফাইল ডাউনলোড করতে সমস্যা হয়েছে।',
         });
         setDownloadingFile(null);
       }
@@ -207,7 +262,7 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
 
   // Handle back navigation
   const handleBack = () => {
-    const segments = currentPath.split('/').filter(s => s);
+    const segments = currentPath.split('/').filter((s) => s);
     if (segments.length === 0) return;
 
     const parentPath = segments.slice(0, -1).join('/');
@@ -249,7 +304,9 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
           <div className="text-center">
             <p className="text-lg font-semibold text-destructive mb-4">ত্রুটি</p>
             <div className="text-left bg-destructive/10 p-4 rounded-lg mb-4 max-w-2xl mx-auto">
-              <pre className="text-sm whitespace-pre-wrap text-foreground font-sans">{error}</pre>
+              <pre className="text-sm whitespace-pre-wrap text-foreground font-sans">
+                {error}
+              </pre>
             </div>
             <Button onClick={() => fetchFiles(currentPath)} variant="default">
               আবার চেষ্টা করুন
@@ -308,8 +365,11 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
                   </Button>
                 )}
               </div>
-              
-              <Select value={sortBy} onValueChange={(value: 'name' | 'size' | 'date') => setSortBy(value)}>
+
+              <Select
+                value={sortBy}
+                onValueChange={(value: 'name' | 'size' | 'date') => setSortBy(value)}
+              >
                 <SelectTrigger className="w-[140px] h-9">
                   <SelectValue />
                 </SelectTrigger>
@@ -344,50 +404,48 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
                 <Search className="h-12 w-12 mx-auto mb-2 opacity-20" />
                 <p>কোনো ফাইল পাওয়া যায়নি</p>
                 {searchQuery && (
-                  <p className="text-sm mt-2">
-                    "{searchQuery}" এর জন্য কোনো ফলাফল নেই
-                  </p>
+                  <p className="text-sm mt-2">"{searchQuery}" এর জন্য কোনো ফলাফল নেই</p>
                 )}
               </div>
             ) : (
               filteredAndSortedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex flex-col p-4 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/50 transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-md"
-                onClick={(e) => handleNavigation(e, file)}
-              >
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-background/50 group-hover:scale-110 transition-transform duration-300">
-                    {getIcon(file.mimeType, file.isFolder)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm group-hover:text-primary transition-colors leading-tight break-words">
-                      {file.name}
-                    </p>
-                    {file.size && (
-                      <p className="text-xs text-muted-foreground mt-1 font-mono">
-                        {file.size}
+                <div
+                  key={index}
+                  className="flex flex-col p-4 rounded-xl border-2 bg-card hover:bg-accent/50 hover:border-primary/50 transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-md"
+                  onClick={(e) => handleNavigation(e, file)}
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-background/50 group-hover:scale-110 transition-transform duration-300">
+                      {getIcon(file.mimeType, file.isFolder)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm group-hover:text-primary transition-colors leading-tight break-words">
+                        {file.name}
                       </p>
-                    )}
+                      {file.size && (
+                        <p className="text-xs text-muted-foreground mt-1 font-mono">
+                          {file.size}
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  {!file.isFolder && (
+                    <div className="flex items-center justify-end mt-auto pt-2 border-t">
+                      {downloadingFile === file.name ? (
+                        <div className="flex items-center gap-2 text-xs text-primary">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>ডাউনলোড হচ্ছে...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                          <Download className="h-4 w-4" />
+                          <span>ডাউনলোড করুন</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                {!file.isFolder && (
-                  <div className="flex items-center justify-end mt-auto pt-2 border-t">
-                    {downloadingFile === file.name ? (
-                      <div className="flex items-center gap-2 text-xs text-primary">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>ডাউনলোড হচ্ছে...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                        <Download className="h-4 w-4" />
-                        <span>ডাউনলোড করুন</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))
+              ))
             )}
           </div>
         )}
