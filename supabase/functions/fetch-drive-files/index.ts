@@ -251,6 +251,7 @@ serve(async (req) => {
           }
         }
       }
+      }
     }
     
     console.log(`Parsed ${files.length} files/folders from HTML`);
