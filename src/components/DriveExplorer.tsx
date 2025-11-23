@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DriveFile {
   name: string;
@@ -100,43 +101,39 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
     return <File className="h-6 w-6 text-slate-500" />;
   };
 
-  // Fetch files from Worker
+  // Fetch files via Supabase Edge Function (fetch-drive-files)
   const fetchFiles = useCallback(async (path: string) => {
     setIsLoading(true);
     setIsNavigating(true);
     setError(null);
 
-    const workerBaseUrl = await getWorkerUrl(userType);
-    const fullUrl = `${workerBaseUrl}${WORKER_CONFIG.GDI_PATH_PREFIX}${encodeURI(path)}`;
-    const headers = {
-      'X-Auth-Token': WORKER_CONFIG.WORKER_AUTH_TOKEN,
-    };
-
-    console.log('[DriveExplorer] userType:', userType, 'path:', path, 'workerBaseUrl:', workerBaseUrl, 'fullUrl:', fullUrl);
-
     try {
-      const response = await fetch(fullUrl, { headers });
+      const { data, error } = await supabase.functions.invoke('fetch-drive-files', {
+        body: { folderName: path, userType },
+      });
 
-      if (response.status === 401) {
-        throw new Error('অ্যাক্সেস অস্বীকৃত। অবৈধ X-Auth-Token।');
-      }
-      
-      if (!response.ok) {
-        const errJson = await response.json();
-        let errorMessage = errJson.message || errJson.error || `Worker Error: ${response.status}`;
-        
-        // Handle specific Worker errors with helpful Bengali messages
-        if (errorMessage.includes('Token refresh failed') || errorMessage.includes('OAuth client was not found')) {
-          errorMessage = '⚠️ Worker কনফিগারেশন সমস্যা: Google OAuth credentials invalid বা expired। \n\nসমাধান:\n১. Google Cloud Console এ যান\n২. OAuth 2.0 Client ID চেক করুন\n৩. Worker এ নতুন CLIENT_ID, CLIENT_SECRET এবং REFRESH_TOKEN আপডেট করুন';
-        }
-        
-        throw new Error(errorMessage);
+      console.log('[DriveExplorer] fetch-drive-files response:', { path, userType, data, error });
+
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
-      setFiles(data.files || []);
-      setCurrentPath(data.currentPath || '');
-      setCurrentFolderName(data.currentFolderName || 'রুট');
+      const apiFiles = (data as any)?.files || [];
+
+      const mappedFiles: DriveFile[] = apiFiles.map((item: any) => ({
+        name: item.name,
+        size: item.size || null,
+        isFolder: !!item.isFolder,
+        path: item.path || '',
+        downloadPath: null,
+        mimeType: item.mimeType || (item.isFolder ? 'folder' : 'application/octet-stream'),
+        fileId: item.fileId,
+        rawSize: item.rawSize,
+      }));
+
+      setFiles(mappedFiles);
+      setCurrentPath(path);
+      setCurrentFolderName(path || 'রুট');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'ড্রাইভ ডেটা লোড করতে ব্যর্থ।';
       console.error('Drive Explorer Error:', err);
