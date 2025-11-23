@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, CreditCard, FileArchive, Key, Settings, BarChart3, Bell, FileText, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, CreditCard, FileArchive, Key, Settings, BarChart3, Bell, FileText, LogOut, HardDrive } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import {
@@ -25,6 +25,7 @@ const menuItems = [
   { title: "ব্যবহারকারী", url: "/admin/users", icon: Users },
   { title: "সাবস্ক্রিপশন", url: "/admin/subscriptions", icon: CreditCard },
   { title: "সেশন ম্যানেজমেন্ট", url: "/admin/sessions", icon: Shield },
+  { title: "ড্রাইভ চেক", url: "/admin/drive-check", icon: HardDrive },
   { title: "ZIP পাসওয়ার্ড", url: "/admin/passwords", icon: Key },
   { title: "অডিট লগ", url: "/admin/audit", icon: FileText },
   { title: "সেটিংস", url: "/admin/settings", icon: Settings },
