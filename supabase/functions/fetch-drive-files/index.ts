@@ -7,9 +7,46 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Worker Configuration - এই লিংকগুলো পরিবর্তন করতে এই ফাইল এডিট করুন
-const WORKER_URL = 'https://black-wildflower-1653.savshopbd.workers.dev';
+// Worker Configuration - Default fallback values
+const DEFAULT_MOBILE_WORKER_URL = 'https://black-wildflower-1653.savshopbd.workers.dev';
+const DEFAULT_BUSINESS_WORKER_URL = 'https://webzip.savshopbd.workers.dev';
 const WORKER_AUTH_TOKEN = 'GDI-Auth-8c5e9a4f-7b1d-4f6c-8e3b-9a2d1e5f0b4a';
+
+// Helper function to get worker config from settings
+async function getWorkerConfig(supabaseClient: any, userType: 'mobile' | 'business') {
+  try {
+    const { data, error } = await supabaseClient
+      .from('settings')
+      .select('value')
+      .eq('key', 'worker_config')
+      .single();
+    
+    if (!error && data) {
+      const config = data.value as {
+        mobile_worker_url: string;
+        business_worker_url: string;
+        custom_domain: string;
+      };
+      
+      // If custom domain is configured, use it
+      if (config.custom_domain) {
+        return `https://${config.custom_domain}`;
+      }
+      
+      // Otherwise use the configured worker URLs
+      return userType === 'mobile' 
+        ? config.mobile_worker_url 
+        : config.business_worker_url;
+    }
+  } catch (e) {
+    console.log('Failed to load worker config from settings:', e);
+  }
+  
+  // Fallback to default values
+  return userType === 'mobile' 
+    ? DEFAULT_MOBILE_WORKER_URL 
+    : DEFAULT_BUSINESS_WORKER_URL;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -76,6 +113,10 @@ serve(async (req) => {
     
     const folderPath = folderName || '';
     console.log(`Fetching files from path: /${folderPath}`);
+    
+    // Get worker URL based on user type and settings
+    const WORKER_URL = await getWorkerConfig(supabaseClient, profile.user_type);
+    console.log('Using worker URL:', WORKER_URL);
     
     // Fetch files using X-Auth-Token header
     const fullUrl = folderPath ? `${WORKER_URL}${folderPath}` : `${WORKER_URL}/0:/`;
