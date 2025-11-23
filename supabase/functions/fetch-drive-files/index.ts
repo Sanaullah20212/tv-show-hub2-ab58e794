@@ -117,8 +117,7 @@ serve(async (req) => {
     const { folderName, userType: requestedUserType } = await req.json();
     
     const folderPath = folderName || '';
-    const workerPath = folderPath ? `0:/${folderPath}` : '0:/';
-    console.log('Fetching files from path:', workerPath);
+    console.log('Request folderPath:', folderPath);
     
     // Decide which user type's drive to use
     const requestedUserTypeSanitized =
@@ -132,12 +131,14 @@ serve(async (req) => {
     // Get worker URL based on user type and settings
     let WORKER_URL = await getWorkerConfig(supabaseClient, effectiveUserType);
     
-    // Ensure URL ends with / for proper path joining
-    if (!WORKER_URL.endsWith('/')) {
-      WORKER_URL += '/';
-    }
+    // Remove trailing slash if present to avoid double slashes
+    WORKER_URL = WORKER_URL.replace(/\/+$/, '');
     
-    console.log('Using worker URL:', WORKER_URL);
+    console.log('Using worker URL (cleaned):', WORKER_URL);
+    
+    // Build the proper path: /0:/path
+    const workerPath = folderPath ? `/0:/${folderPath}` : '/0:/';
+    console.log('Worker path:', workerPath);
     
     // Fetch files using X-Auth-Token header
     const fullUrl = `${WORKER_URL}${workerPath}`;
