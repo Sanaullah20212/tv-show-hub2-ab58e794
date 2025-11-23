@@ -106,8 +106,8 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
     setIsNavigating(true);
     setError(null);
 
-    const workerBaseUrl = getWorkerUrl(userType);
-    const fullUrl = `${workerBaseUrl}${WORKER_CONFIG.GDI_PATH_PREFIX}${path}`;
+    const workerBaseUrl = await getWorkerUrl(userType);
+    const fullUrl = `${workerBaseUrl}${WORKER_CONFIG.GDI_PATH_PREFIX}${encodeURI(path)}`;
     const headers = {
       'X-Auth-Token': WORKER_CONFIG.WORKER_AUTH_TOKEN,
     };
@@ -165,7 +165,7 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
       setDownloadingFile(file.name);
       
       try {
-        const workerBaseUrl = getWorkerUrl(userType);
+        const workerBaseUrl = await getWorkerUrl(userType);
         
         // Use instant download API if fileId and rawSize are available
         let fullDownloadUrl: string;
@@ -176,7 +176,7 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
           // Fallback to old download path method
           fullDownloadUrl = `${workerBaseUrl}${file.downloadPath?.replace('/', '')}`;
         }
-        
+
         // Direct download without opening new tab
         const link = document.createElement('a');
         link.href = fullDownloadUrl;
