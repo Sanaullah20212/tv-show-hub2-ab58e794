@@ -15,6 +15,9 @@ interface SettingsData {
   registration_enabled: boolean;
   whatsapp: string;
   facebook: string;
+  mobile_worker_url: string;
+  business_worker_url: string;
+  custom_domain: string;
 }
 
 const Settings = () => {
@@ -27,6 +30,9 @@ const Settings = () => {
     registration_enabled: true,
     whatsapp: '',
     facebook: '',
+    mobile_worker_url: 'https://black-wildflower-1653.savshopbd.workers.dev/',
+    business_worker_url: 'https://webzip.savshopbd.workers.dev/',
+    custom_domain: '',
   });
 
   useEffect(() => {
@@ -41,7 +47,7 @@ const Settings = () => {
       const { data, error } = await supabase
         .from('settings')
         .select('key, value')
-        .in('key', ['recaptcha_enabled', 'registration_enabled', 'social_links']);
+        .in('key', ['recaptcha_enabled', 'registration_enabled', 'social_links', 'worker_config']);
 
       if (error) throw error;
 
@@ -57,6 +63,11 @@ const Settings = () => {
           const value = item.value as { whatsapp: string; facebook: string };
           newSettings.whatsapp = value.whatsapp || '';
           newSettings.facebook = value.facebook || '';
+        } else if (item.key === 'worker_config') {
+          const value = item.value as { mobile_worker_url: string; business_worker_url: string; custom_domain: string };
+          newSettings.mobile_worker_url = value.mobile_worker_url || '';
+          newSettings.business_worker_url = value.business_worker_url || '';
+          newSettings.custom_domain = value.custom_domain || '';
         }
       });
       setSettings(newSettings);
@@ -100,6 +111,20 @@ const Settings = () => {
         .eq('key', 'social_links');
 
       if (socialError) throw socialError;
+
+      // Update worker config
+      const { error: workerError } = await supabase
+        .from('settings')
+        .upsert({
+          key: 'worker_config',
+          value: {
+            mobile_worker_url: settings.mobile_worker_url,
+            business_worker_url: settings.business_worker_url,
+            custom_domain: settings.custom_domain,
+          },
+        }, { onConflict: 'key' });
+
+      if (workerError) throw workerError;
 
       toast.success('সেটিংস সফলভাবে সংরক্ষণ করা হয়েছে');
     } catch (error) {
@@ -172,6 +197,49 @@ const Settings = () => {
                   setSettings({ ...settings, registration_enabled: checked })
                 }
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Worker Configuration</CardTitle>
+            <CardDescription>Cloudflare Worker URLs এবং Custom Domain কনফিগার করুন</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="mobile_worker">মোবাইল ইউজার Worker URL</Label>
+              <Input
+                id="mobile_worker"
+                placeholder="https://your-worker.workers.dev/"
+                value={settings.mobile_worker_url}
+                onChange={(e) => setSettings({ ...settings, mobile_worker_url: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">মোবাইল ইউজারদের জন্য Cloudflare Worker URL</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business_worker">বিজনেস ইউজার Worker URL</Label>
+              <Input
+                id="business_worker"
+                placeholder="https://your-worker.workers.dev/"
+                value={settings.business_worker_url}
+                onChange={(e) => setSettings({ ...settings, business_worker_url: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">বিজনেস ইউজারদের জন্য Cloudflare Worker URL</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="custom_domain">কাস্টম ডোমেইন (ঐচ্ছিক)</Label>
+              <Input
+                id="custom_domain"
+                placeholder="cloud.btspro24.com"
+                value={settings.custom_domain}
+                onChange={(e) => setSettings({ ...settings, custom_domain: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Cloudflare Worker route এর জন্য কাস্টম ডোমেইন (যেমন: cloud.btspro24.com)
+              </p>
             </div>
           </CardContent>
         </Card>
