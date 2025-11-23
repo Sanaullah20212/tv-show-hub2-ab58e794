@@ -152,7 +152,8 @@ const DriveExplorer = ({ userType }: DriveExplorerProps) => {
 
         const transformedFiles: DriveFile[] = (response.files || []).map((item) => ({
           name: item.name,
-          size: item.size,
+          // ফোল্ডারের জন্য সাইজ দেখাব না, শুধু ফাইলের জন্য
+          size: item.isFolder ? null : item.size,
           isFolder: item.isFolder,
           path: item.path || '',
           downloadPath: item.downloadUrl || null,
