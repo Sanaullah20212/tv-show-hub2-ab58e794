@@ -8,8 +8,8 @@ const corsHeaders = {
 };
 
 // Worker Configuration - Default fallback values
-const DEFAULT_MOBILE_WORKER_URL = 'https://mobi.btspro24.xyz';
-const DEFAULT_BUSINESS_WORKER_URL = 'https://web.btspro24.xyz';
+const DEFAULT_MOBILE_WORKER_URL = 'https://black-wildflower-1653.savshopbd.workers.dev';
+const DEFAULT_BUSINESS_WORKER_URL = 'https://webzip.savshopbd.workers.dev';
 const WORKER_AUTH_TOKEN = 'GDI-Auth-8c5e9a4f-7b1d-4f6c-8e3b-9a2d1e5f0b4a';
 
 // Helper function to get worker config from settings
