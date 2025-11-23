@@ -119,6 +119,16 @@ serve(async (req) => {
     const folderPath = folderName || '';
     const workerPath = folderPath ? `/0:/${folderPath}` : '/0:/';
     console.log('Fetching files from path:', workerPath);
+
+    let currentPath = folderPath;
+    let currentFolderName = folderPath
+      ? decodeURIComponent(
+          folderPath
+            .split(/[\/\\]/)
+            .filter((segment: string) => segment && segment !== '.')
+            .slice(-1)[0]
+        )
+      : '';
     
     // Decide which user type's drive to use
     const requestedUserTypeSanitized =
@@ -160,6 +170,14 @@ serve(async (req) => {
     const files: any[] = [];
     try {
       const json = JSON.parse(htmlText);
+      if (json && typeof json === 'object') {
+        if (typeof json.currentPath === 'string') {
+          currentPath = json.currentPath;
+        }
+        if (typeof json.currentFolderName === 'string') {
+          currentFolderName = json.currentFolderName;
+        }
+      }
       if (json && Array.isArray(json.files)) {
         console.log(`Parsed ${json.files.length} items from JSON response`);
         for (const item of json.files as any[]) {
@@ -271,7 +289,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ files }),
+      JSON.stringify({ files, currentPath, currentFolderName }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
