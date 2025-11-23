@@ -5,10 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const WORKER_CONFIG = {
   // Mobile users এর জন্য Worker URL
-  MOBILE_WORKER_URL: 'https://mobi.btspro24.xyz/',
+  MOBILE_WORKER_URL: 'https://black-wildflower-1653.savshopbd.workers.dev/',
   
   // Business users এর জন্য Worker URL
-  BUSINESS_WORKER_URL: 'https://web.btspro24.xyz/',
+  BUSINESS_WORKER_URL: 'https://webzip.savshopbd.workers.dev/',
   
   // Authentication token
   WORKER_AUTH_TOKEN: 'GDI-Auth-8c5e9a4f-7b1d-4f6c-8e3b-9a2d1e5f0b4a',
