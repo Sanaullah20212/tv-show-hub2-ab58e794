@@ -125,10 +125,12 @@ const Index = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-white drop-shadow-2xl tracking-tight animate-scale-in">
-                    BTSPRO24.COM
+                  <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold drop-shadow-2xl tracking-tight animate-scale-in">
+                    <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-[length:200%_100%] animate-gradient-x bg-clip-text text-transparent">
+                      BTSPRO24.COM
+                    </span>
                   </h1>
-                  <div className="h-1.5 w-32 sm:w-48 mx-auto bg-gradient-to-r from-transparent via-white to-transparent rounded-full"></div>
+                  <div className="h-1.5 w-32 sm:w-48 mx-auto bg-gradient-to-r from-transparent via-white to-transparent rounded-full animate-pulse"></div>
                 </div>
               </div>
               
