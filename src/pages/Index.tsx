@@ -11,8 +11,50 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary to-info">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-white shadow-lg"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-info to-success overflow-hidden relative">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+
+        {/* Main loading content */}
+        <div className="relative flex flex-col items-center justify-center space-y-8 animate-fade-in">
+          {/* Shield icon with advanced animations */}
+          <div className="relative group">
+            {/* Outer glow ring - rotating */}
+            <div className="absolute inset-0 -m-8">
+              <div className="w-full h-full rounded-full border-4 border-white/30 animate-spin" style={{ animationDuration: '3s' }}></div>
+            </div>
+            
+            {/* Middle glow ring - pulsing */}
+            <div className="absolute inset-0 -m-4">
+              <div className="w-full h-full rounded-full border-2 border-white/50 animate-pulse"></div>
+            </div>
+            
+            {/* Inner glow effect */}
+            <div className="absolute inset-0 bg-white/30 rounded-full blur-3xl animate-pulse"></div>
+            
+            {/* Shield icon */}
+            <div className="relative p-8 bg-white/20 rounded-full backdrop-blur-sm shadow-2xl border-2 border-white/30 animate-scale-in">
+              <Shield className="h-24 w-24 text-white drop-shadow-2xl animate-pulse" />
+            </div>
+          </div>
+
+          {/* Logo text with animation */}
+          <div className="space-y-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <h1 className="text-6xl font-bold text-white drop-shadow-2xl tracking-tight animate-pulse">
+              BTSPRO24.COM
+            </h1>
+            {/* Animated underline */}
+            <div className="h-1.5 w-48 mx-auto bg-gradient-to-r from-transparent via-white to-transparent rounded-full animate-pulse"></div>
+          </div>
+
+          {/* Loading text */}
+          <p className="text-white/90 text-xl font-bengali animate-pulse" style={{ animationDelay: '0.5s' }}>
+            লোড হচ্ছে...
+          </p>
+        </div>
       </div>
     );
   }
