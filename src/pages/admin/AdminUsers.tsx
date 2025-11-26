@@ -26,6 +26,11 @@ const AdminUsers = () => {
   const [dataLoading, setDataLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [filterSubscriptionStatus, setFilterSubscriptionStatus] = useState<'all' | 'active' | 'expired' | 'none'>('all');
+  const [filterCountry, setFilterCountry] = useState<string>('all');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [countries, setCountries] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
@@ -48,19 +53,66 @@ const AdminUsers = () => {
   useEffect(() => {
     if (user && profile?.role === 'admin') {
       fetchUsers();
+      fetchCountries();
     }
   }, [user, profile]);
+
+  const fetchCountries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('login_attempts')
+        .select('country')
+        .not('country', 'is', null);
+
+      if (error) throw error;
+
+      const uniqueCountries = Array.from(new Set(data?.map(d => d.country).filter(Boolean))) as string[];
+      setCountries(uniqueCountries.sort());
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
       setDataLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch profiles with their subscription info and login location
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Fetch subscription data for each user
+      const { data: subscriptionsData } = await supabase
+        .from('subscriptions')
+        .select('user_id, status, end_date')
+        .eq('status', 'active');
+
+      // Fetch latest login location for each user
+      const { data: loginData } = await supabase
+        .from('login_attempts')
+        .select('user_id, country, city')
+        .eq('attempt_type', 'success')
+        .order('created_at', { ascending: false });
+
+      // Merge the data
+      const usersWithData = profilesData?.map(profile => {
+        const subscription = subscriptionsData?.find(s => s.user_id === profile.user_id);
+        const loginInfo = loginData?.find(l => l.user_id === profile.user_id);
+        
+        return {
+          ...profile,
+          hasActiveSubscription: !!subscription && new Date(subscription.end_date) > new Date(),
+          subscriptionEndDate: subscription?.end_date,
+          country: loginInfo?.country,
+          city: loginInfo?.city
+        };
+      });
+
+      setUsers(usersWithData || []);
     } catch (error) {
       console.error('Error:', error);
       toast.error('লোড করতে ব্যর্থ');
@@ -87,9 +139,34 @@ const AdminUsers = () => {
   };
 
   const filteredUsers = users.filter(u => {
-    const matchesSearch = u.mobile_number?.includes(searchQuery);
+    const matchesSearch = u.mobile_number?.includes(searchQuery) || u.display_name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || u.user_type === filterType;
-    return matchesSearch && matchesType;
+    
+    // Subscription status filter
+    let matchesSubscription = true;
+    if (filterSubscriptionStatus !== 'all') {
+      if (filterSubscriptionStatus === 'active') {
+        matchesSubscription = u.hasActiveSubscription === true;
+      } else if (filterSubscriptionStatus === 'expired') {
+        matchesSubscription = u.hasActiveSubscription === false && u.subscriptionEndDate;
+      } else if (filterSubscriptionStatus === 'none') {
+        matchesSubscription = !u.subscriptionEndDate;
+      }
+    }
+
+    // Country filter
+    const matchesCountry = filterCountry === 'all' || u.country === filterCountry;
+
+    // Date range filter
+    let matchesDateRange = true;
+    if (filterDateFrom) {
+      matchesDateRange = matchesDateRange && new Date(u.created_at) >= new Date(filterDateFrom);
+    }
+    if (filterDateTo) {
+      matchesDateRange = matchesDateRange && new Date(u.created_at) <= new Date(filterDateTo);
+    }
+
+    return matchesSearch && matchesType && matchesSubscription && matchesCountry && matchesDateRange;
   });
 
   const parsePrice = (value: string) => {
@@ -354,6 +431,74 @@ const AdminUsers = () => {
     }
   };
 
+  const handleBulkApprove = async () => {
+    if (selectedUsers.size === 0) {
+      toast.error('অন্তত একজন ইউজার সিলেক্ট করুন');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ approval_status: 'approved', approved_at: new Date().toISOString() })
+        .in('user_id', Array.from(selectedUsers));
+
+      if (error) throw error;
+
+      toast.success(`${selectedUsers.size}টি ইউজার অনুমোদন করা হয়েছে`);
+      setSelectedUsers(new Set());
+      fetchUsers();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('ব্যবহারকারী অনুমোদন করতে ব্যর্থ');
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedUsers.size === 0) {
+      toast.error('অন্তত একজন ইউজার সিলেক্ট করুন');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ approval_status: 'rejected', rejection_reason: 'Bulk rejection by admin' })
+        .in('user_id', Array.from(selectedUsers));
+
+      if (error) throw error;
+
+      toast.success(`${selectedUsers.size}টি ইউজার প্রত্যাখ্যান করা হয়েছে`);
+      setSelectedUsers(new Set());
+      fetchUsers();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('ব্যবহারকারী প্রত্যাখ্যান করতে ব্যর্থ');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedUsers.size === 0) {
+      toast.error('অন্তত একজন ইউজার সিলেক্ট করুন');
+      return;
+    }
+
+    try {
+      const deletePromises = Array.from(selectedUsers).map(userId =>
+        supabase.functions.invoke('delete-user', { body: { userId } })
+      );
+
+      await Promise.all(deletePromises);
+
+      toast.success(`${selectedUsers.size}টি ইউজার ডিলিট করা হয়েছে`);
+      setSelectedUsers(new Set());
+      fetchUsers();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('ব্যবহারকারী ডিলিট করতে ব্যর্থ');
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -413,27 +558,113 @@ const AdminUsers = () => {
                 <CardContent className="pt-6">
                   <div className="flex flex-col gap-4">
                     {/* Search and Filter Row */}
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="relative flex-1">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            placeholder="মোবাইল নম্বর বা নাম দিয়ে খুঁজুন..." 
+                            value={searchQuery} 
+                            onChange={(e) => setSearchQuery(e.target.value)} 
+                            className="pl-9 h-11"
+                          />
+                        </div>
+                        <Select value={filterType} onValueChange={setFilterType}>
+                          <SelectTrigger className="w-full sm:w-[180px] h-11">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">সব টাইপ</SelectItem>
+                            <SelectItem value="mobile">মোবাইল</SelectItem>
+                            <SelectItem value="business">বিজনেস</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Advanced Filters */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <Select value={filterSubscriptionStatus} onValueChange={(value: any) => setFilterSubscriptionStatus(value)}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="সাবস্ক্রিপশন স্ট্যাটাস" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">সব স্ট্যাটাস</SelectItem>
+                            <SelectItem value="active">সক্রিয়</SelectItem>
+                            <SelectItem value="expired">মেয়াদ শেষ</SelectItem>
+                            <SelectItem value="none">নেই</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        <Select value={filterCountry} onValueChange={setFilterCountry}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="দেশ" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">সব দেশ</SelectItem>
+                            {countries.map(country => (
+                              <SelectItem key={country} value={country}>{country}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
                         <Input 
-                          placeholder="মোবাইল নম্বর দিয়ে খুঁজুন..." 
-                          value={searchQuery} 
-                          onChange={(e) => setSearchQuery(e.target.value)} 
-                          className="pl-9 h-11"
+                          type="date"
+                          placeholder="তারিখ থেকে"
+                          value={filterDateFrom}
+                          onChange={(e) => setFilterDateFrom(e.target.value)}
+                          className="h-11"
+                        />
+
+                        <Input 
+                          type="date"
+                          placeholder="তারিখ পর্যন্ত"
+                          value={filterDateTo}
+                          onChange={(e) => setFilterDateTo(e.target.value)}
+                          className="h-11"
                         />
                       </div>
-                      <Select value={filterType} onValueChange={setFilterType}>
-                        <SelectTrigger className="w-full sm:w-[180px] h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">সব টাইপ</SelectItem>
-                          <SelectItem value="mobile">মোবাইল</SelectItem>
-                          <SelectItem value="business">বিজনেস</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
+
+                    {/* Bulk Action Buttons */}
+                    {selectedUsers.size > 0 && (
+                      <div className="flex flex-wrap gap-2 p-4 bg-muted/50 rounded-lg border">
+                        <span className="text-sm font-bengali self-center">{selectedUsers.size}টি সিলেক্ট করা হয়েছে</span>
+                        <Button onClick={handleBulkApprove} size="sm" variant="default" className="font-bengali">
+                          <UserCheck className="h-4 w-4 mr-1" />
+                          অনুমোদন
+                        </Button>
+                        <Button onClick={handleBulkReject} size="sm" variant="destructive" className="font-bengali">
+                          <UserX className="h-4 w-4 mr-1" />
+                          প্রত্যাখ্যান
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" className="font-bengali">
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              ডিলিট
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="font-bengali">নিশ্চিত করুন</AlertDialogTitle>
+                              <AlertDialogDescription className="font-bengali">
+                                আপনি কি নিশ্চিত যে আপনি {selectedUsers.size}টি ইউজার ডিলিট করতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="font-bengali">বাতিল</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleBulkDelete} className="font-bengali bg-destructive">
+                                ডিলিট করুন
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                        <Button onClick={() => setSelectedUsers(new Set())} size="sm" variant="outline" className="font-bengali">
+                          <X className="h-4 w-4 mr-1" />
+                          সিলেকশন ক্লিয়ার
+                        </Button>
+                      </div>
+                    )}
                     
                     {/* Bulk Actions */}
                     {selectedUsers.size > 0 && (

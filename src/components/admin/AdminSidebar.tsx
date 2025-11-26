@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, CreditCard, FileArchive, Key, Settings, BarChart3, Bell, FileText, LogOut, HardDrive } from "lucide-react";
+import { LayoutDashboard, Users, CreditCard, FileArchive, Key, Settings, BarChart3, Bell, FileText, LogOut, HardDrive, DollarSign } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import {
@@ -22,6 +22,7 @@ interface AdminSidebarProps {
 const menuItems = [
   { title: "ড্যাশবোর্ড", url: "/admin", icon: LayoutDashboard, end: true },
   { title: "অ্যানালিটিক্স", url: "/admin/analytics", icon: BarChart3 },
+  { title: "আয়ের পরিসংখ্যান", url: "/admin/revenue", icon: DollarSign },
   { title: "ব্যবহারকারী", url: "/admin/users", icon: Users },
   { title: "সাবস্ক্রিপশন", url: "/admin/subscriptions", icon: CreditCard },
   { title: "সেশন ম্যানেজমেন্ট", url: "/admin/sessions", icon: Shield },
