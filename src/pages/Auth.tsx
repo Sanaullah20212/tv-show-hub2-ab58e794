@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Smartphone, Shield, Tv, Archive, MessageCircle, Facebook, Home, Lock, UserPlus } from 'lucide-react';
+import { Smartphone, Shield, Tv, Archive, MessageCircle, Facebook, ArrowLeft, Lock, UserPlus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/hooks/useSettings';
@@ -112,12 +112,11 @@ const Auth = () => {
           <Button
             asChild
             variant="ghost"
-            size="sm"
+            size="icon"
             className="text-muted-foreground hover:text-foreground transition-all hover:scale-105"
           >
-            <a href="/" className="flex items-center justify-center gap-2 font-bengali">
-              <Home className="h-4 w-4" />
-              হোম পেজে ফিরে যান
+            <a href="/">
+              <ArrowLeft className="h-5 w-5" />
             </a>
           </Button>
         </div>
@@ -136,7 +135,6 @@ const Auth = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
               BTSPRO24.COM
             </h1>
-            <p className="text-muted-foreground mt-2">নিরাপদ এবং সহজ লগইন সিস্টেম</p>
           </div>
         </div>
 
