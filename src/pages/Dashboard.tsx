@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, Smartphone, Archive, Shield, LogOut, FileArchive, Key, Home, Settings, User, AlertCircle } from 'lucide-react';
+import { CalendarDays, Smartphone, Archive, Shield, LogOut, FileArchive, Key, Home, Settings, User, AlertCircle, RefreshCcw, HeadphonesIcon, MessageCircle, Facebook } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSettings } from '@/hooks/useSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -16,12 +17,12 @@ import { NotificationBell } from '@/components/NotificationBell';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import ZipPasswords from '@/components/ZipPasswords';
 import DriveFiles from '@/components/DriveFiles';
-import { QuickActions } from '@/components/QuickActions';
 import { Progress } from '@/components/ui/progress';
 import { formatDateBengali } from '@/lib/utils';
 
 const Dashboard = () => {
   const { user, profile, loading, signOut } = useAuth();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [subscription, setSubscription] = useState<any>(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
@@ -145,114 +146,209 @@ const Dashboard = () => {
       </header>
 
       <div className="container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-5 max-w-7xl">
-        {/* Compact Subscription Status Card */}
+        {/* Compact Subscription Status Card matching screenshot */}
         <Card className="overflow-hidden relative hover:shadow-lg transition-all duration-300">
-          <div 
-            className="absolute left-0 top-0 bottom-0 w-1"
-            style={{ backgroundColor: hasActiveSubscription ? 'hsl(var(--success))' : 'hsl(var(--destructive))' }}
-          />
-          <CardContent className="pt-4 pb-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="p-2 rounded-lg"
-                  style={{ 
-                    background: hasActiveSubscription 
-                      ? 'linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--info)) 100%)'
-                      : 'hsl(var(--muted))',
-                  }}
-                >
-                  <CalendarDays className="h-5 w-5 text-white" />
+          <CardContent className="p-4 sm:p-6">
+            {subscriptionLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2 flex-1">
+                    <div className="h-5 bg-muted/50 rounded w-32"></div>
+                    <div className="h-4 bg-muted/50 rounded w-48"></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-9 w-24 bg-muted/50 rounded"></div>
+                    <div className="h-9 w-24 bg-muted/50 rounded"></div>
+                  </div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold font-bengali">সাবস্ক্রিপশন</h3>
-                    {hasActiveSubscription ? (
-                      <Badge 
-                        className="px-2 py-0.5 text-xs font-bengali"
-                        style={{ 
-                          backgroundColor: 'hsl(var(--success)/0.15)',
-                          color: 'hsl(var(--success))',
-                          border: '1px solid hsl(var(--success)/0.3)',
-                        }}
+                <div className="h-2 bg-muted/50 rounded-full"></div>
+                <div className="flex justify-between">
+                  <div className="h-3 bg-muted/50 rounded w-24"></div>
+                  <div className="h-3 bg-muted/50 rounded w-24"></div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="p-2.5 rounded-lg"
+                      style={{ 
+                        background: hasActiveSubscription 
+                          ? 'linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--info)) 100%)'
+                          : 'hsl(var(--muted))',
+                      }}
+                    >
+                      <CalendarDays className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-bold font-bengali">সাবস্ক্রিপশন</h3>
+                        {hasActiveSubscription ? (
+                          <Badge 
+                            className="px-2 py-0.5 text-xs font-bengali"
+                            style={{ 
+                              backgroundColor: 'hsl(var(--success)/0.15)',
+                              color: 'hsl(var(--success))',
+                              border: '1px solid hsl(var(--success)/0.3)',
+                            }}
+                          >
+                            সক্রিয়
+                          </Badge>
+                        ) : hasPendingSubscription ? (
+                          <Badge 
+                            className="px-2 py-0.5 text-xs font-bengali"
+                            style={{ 
+                              backgroundColor: 'hsl(var(--warning)/0.15)',
+                              color: 'hsl(var(--warning))',
+                              border: '1px solid hsl(var(--warning)/0.3)'
+                            }}
+                          >
+                            অপেক্ষারত
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            className="px-2 py-0.5 text-xs font-bengali"
+                            style={{ 
+                              backgroundColor: 'hsl(var(--destructive)/0.15)',
+                              color: 'hsl(var(--destructive))',
+                              border: '1px solid hsl(var(--destructive)/0.3)'
+                            }}
+                          >
+                            মেয়াদ শেষ
+                          </Badge>
+                        )}
+                      </div>
+                      {hasActiveSubscription && (
+                        <p className="text-sm text-muted-foreground font-bengali mt-0.5">
+                          {subscription.plan_months} মাস • {daysRemaining} দিন বাকি
+                          {isExpiringSoon && <span className="text-warning ml-2">⚠️</span>}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button 
+                      onClick={() => navigate('/plans')}
+                      size="sm"
+                      variant="outline"
+                      className="font-bengali"
+                    >
+                      <RefreshCcw className="h-4 w-4 mr-1.5" />
+                      প্ল্যান নবায়ন
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        const supportSection = document.getElementById('support-links');
+                        if (supportSection) {
+                          supportSection.classList.toggle('hidden');
+                        }
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="font-bengali"
+                    >
+                      <HeadphonesIcon className="h-4 w-4 mr-1.5" />
+                      সাপোর্ট
+                    </Button>
+                    <Button 
+                      onClick={() => navigate('/plans')}
+                      size="sm"
+                      className="font-bengali"
+                      style={{
+                        background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
+                        color: 'white'
+                      }}
+                    >
+                      প্ল্যান দেখুন
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Support Links (hidden by default) */}
+                <div id="support-links" className="hidden mb-4 p-3 rounded-lg bg-muted/50 border border-border">
+                  <p className="text-sm font-bengali font-semibold mb-2 text-muted-foreground">যোগাযোগ করুন:</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {settings?.social_links?.whatsapp && (
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="font-bengali"
                       >
-                        সক্রিয়
-                      </Badge>
-                    ) : hasPendingSubscription ? (
-                      <Badge 
-                        className="px-2 py-0.5 text-xs font-bengali"
-                        style={{ 
-                          backgroundColor: 'hsl(var(--warning)/0.15)',
-                          color: 'hsl(var(--warning))',
-                          border: '1px solid hsl(var(--warning)/0.3)'
-                        }}
+                        <a
+                          href={settings.social_links.whatsapp}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          WhatsApp
+                        </a>
+                      </Button>
+                    )}
+                    {settings?.social_links?.facebook && (
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="font-bengali"
                       >
-                        অপেক্ষারত
-                      </Badge>
-                    ) : (
-                      <Badge 
-                        className="px-2 py-0.5 text-xs font-bengali"
-                        style={{ 
-                          backgroundColor: 'hsl(var(--destructive)/0.15)',
-                          color: 'hsl(var(--destructive))',
-                          border: '1px solid hsl(var(--destructive)/0.3)'
-                        }}
-                      >
-                        মেয়াদ শেষ
-                      </Badge>
+                        <a
+                          href={settings.social_links.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2"
+                        >
+                          <Facebook className="h-4 w-4" />
+                          Facebook
+                        </a>
+                      </Button>
                     )}
                   </div>
-                  {subscriptionLoading ? (
-                    <div className="h-4 w-32 bg-muted/50 rounded mt-1 animate-pulse"></div>
-                  ) : hasActiveSubscription ? (
-                    <p className="text-sm text-muted-foreground font-bengali">
-                      {subscription.plan_months} মাস • {daysRemaining} দিন বাকি
-                      {isExpiringSoon && <span className="text-warning ml-2">⚠️ শীঘ্রই শেষ</span>}
-                    </p>
-                  ) : hasPendingSubscription ? (
-                    <p className="text-sm text-muted-foreground font-bengali">
-                      {subscription.plan_months} মাস • অনুমোদনের অপেক্ষায়
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground font-bengali">
+                </div>
+                
+                {/* Progress Bar */}
+                {hasActiveSubscription && (
+                  <div className="space-y-2">
+                    <Progress 
+                      value={progressPercentage} 
+                      className="h-2.5"
+                      style={{
+                        '--progress-color': isExpiringSoon 
+                          ? 'linear-gradient(90deg, hsl(var(--warning)) 0%, hsl(var(--destructive)) 100%)'
+                          : 'linear-gradient(90deg, hsl(var(--success)) 0%, hsl(var(--info)) 100%)'
+                      } as React.CSSProperties}
+                    />
+                    <div className="flex justify-between text-xs font-bengali text-muted-foreground">
+                      <span>{formatDateBengali(subscription.start_date)}</span>
+                      <span>{formatDateBengali(subscription.end_date)}</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* No subscription message */}
+                {!hasActiveSubscription && !hasPendingSubscription && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground font-bengali mb-2">
                       কোন সক্রিয় সাবস্ক্রিপশন নেই
                     </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <QuickActions hasActiveSubscription={hasActiveSubscription} />
-                <Button 
-                  onClick={() => navigate('/plans')}
-                  size="sm"
-                  className="font-bengali"
-                  style={{
-                    background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
-                    color: 'white'
-                  }}
-                >
-                  প্ল্যান দেখুন
-                </Button>
-              </div>
-            </div>
-            
-            {/* Compact Progress Bar */}
-            {hasActiveSubscription && (
-              <div className="mt-3 space-y-1">
-                <Progress 
-                  value={progressPercentage} 
-                  className="h-2"
-                  style={{
-                    '--progress-color': isExpiringSoon 
-                      ? 'linear-gradient(90deg, hsl(var(--warning)) 0%, hsl(var(--destructive)) 100%)'
-                      : 'linear-gradient(90deg, hsl(var(--success)) 0%, hsl(var(--info)) 100%)'
-                  } as React.CSSProperties}
-                />
-                <div className="flex justify-between text-xs font-bengali text-muted-foreground">
-                  <span>{formatDateBengali(subscription.start_date)}</span>
-                  <span>{formatDateBengali(subscription.end_date)}</span>
-                </div>
-              </div>
+                    <p className="text-xs text-muted-foreground font-bengali">
+                      একটি প্ল্যান নির্বাচন করুন
+                    </p>
+                  </div>
+                )}
+                
+                {/* Pending subscription message */}
+                {hasPendingSubscription && (
+                  <div className="mt-3 p-3 rounded-lg bg-warning/10 border border-warning/30">
+                    <p className="text-sm font-bengali text-warning flex items-center gap-2">
+                      <span className="animate-spin">🔄</span>
+                      আপনার {subscription.plan_months} মাসের সাবস্ক্রিপশন এডমিন অনুমোদনের অপেক্ষায় রয়েছে
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
