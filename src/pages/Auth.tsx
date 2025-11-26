@@ -121,22 +121,6 @@ const Auth = () => {
           </Button>
         </div>
 
-        {/* Header with animated logo */}
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center">
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-              <div className="relative bg-gradient-to-br from-primary to-secondary p-4 rounded-2xl shadow-lg">
-                <Shield className="h-10 w-10 text-white" />
-              </div>
-            </div>
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
-              BTSPRO24.COM
-            </h1>
-          </div>
-        </div>
 
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className={`grid w-full ${registrationEnabled ? 'grid-cols-2' : 'grid-cols-1'} bg-card/50 backdrop-blur-sm p-1 h-auto`}>
