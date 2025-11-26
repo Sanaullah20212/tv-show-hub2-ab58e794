@@ -16,6 +16,8 @@ import { NotificationBell } from '@/components/NotificationBell';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import ZipPasswords from '@/components/ZipPasswords';
 import DriveFiles from '@/components/DriveFiles';
+import { QuickActions } from '@/components/QuickActions';
+import { Progress } from '@/components/ui/progress';
 import { formatDateBengali } from '@/lib/utils';
 
 const Dashboard = () => {
@@ -81,6 +83,16 @@ const Dashboard = () => {
 
   const hasActiveSubscription = subscription && subscription.status === 'active' && new Date(subscription.end_date) > new Date();
   const hasPendingSubscription = subscription && subscription.status === 'pending';
+  
+  // Calculate subscription progress
+  const daysRemaining = hasActiveSubscription 
+    ? Math.ceil((new Date(subscription.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const totalDays = hasActiveSubscription
+    ? Math.ceil((new Date(subscription.end_date).getTime() - new Date(subscription.start_date).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const progressPercentage = hasActiveSubscription ? ((totalDays - daysRemaining) / totalDays) * 100 : 0;
+  const isExpiringSoon = daysRemaining <= 7 && daysRemaining > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -233,27 +245,70 @@ const Dashboard = () => {
                 <div className="h-6 bg-muted/50 rounded-xl w-1/2"></div>
               </div>
             ) : hasActiveSubscription ? (
-              <div 
-                className="p-4 sm:p-6 rounded-xl relative overflow-hidden group/inner hover:scale-[1.02] transition-transform"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--info)) 100%)',
-                  boxShadow: '0 8px 24px -4px hsl(var(--success)/0.3)'
-                }}
-              >
-                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-                <div className="relative z-10 space-y-2.5">
-                  <p className="text-white font-semibold font-bengali text-sm sm:text-base flex items-center gap-2">
-                    <span className="text-lg">💎</span>
-                    প্ল্যান: {subscription.plan_months} মাস • {subscription.price_taka} টাকা
-                  </p>
-                  <p className="text-white/90 font-bengali text-sm sm:text-base flex items-center gap-2">
-                    <span className="text-lg">📅</span>
-                    মেয়াদ: {formatDateBengali(subscription.end_date)} পর্যন্ত
-                  </p>
-                  <p className="text-white font-bold font-bengali text-sm sm:text-base flex items-center gap-2">
-                    <span className="text-lg">⏰</span>
-                    {Math.ceil((new Date(subscription.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} দিন বাকি আছে
-                  </p>
+              <div className="space-y-4">
+                <div 
+                  className="p-4 sm:p-6 rounded-xl relative overflow-hidden group/inner hover:scale-[1.02] transition-transform"
+                  style={{
+                    background: isExpiringSoon 
+                      ? 'linear-gradient(135deg, hsl(var(--warning)) 0%, hsl(var(--destructive)) 100%)'
+                      : 'linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--info)) 100%)',
+                    boxShadow: isExpiringSoon 
+                      ? '0 8px 24px -4px hsl(var(--warning)/0.5)'
+                      : '0 8px 24px -4px hsl(var(--success)/0.3)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+                  <div className="relative z-10 space-y-3">
+                    <p className="text-white font-semibold font-bengali text-sm sm:text-base flex items-center gap-2">
+                      <span className="text-lg">💎</span>
+                      প্ল্যান: {subscription.plan_months} মাস • {subscription.price_taka} টাকা
+                    </p>
+                    <p className="text-white/90 font-bengali text-sm sm:text-base flex items-center gap-2">
+                      <span className="text-lg">📅</span>
+                      মেয়াদ: {formatDateBengali(subscription.end_date)} পর্যন্ত
+                    </p>
+                    <p className="text-white font-bold font-bengali text-sm sm:text-base flex items-center gap-2">
+                      <span className="text-lg">⏰</span>
+                      {daysRemaining} দিন বাকি আছে
+                    </p>
+                    
+                    {/* Warning for expiring soon */}
+                    {isExpiringSoon && (
+                      <div className="mt-3 p-3 rounded-lg bg-white/20 backdrop-blur-sm animate-pulse">
+                        <p className="text-white font-bold font-bengali text-sm flex items-center gap-2">
+                          <AlertCircle className="h-5 w-5" />
+                          ⚠️ সাবস্ক্রিপশন শীঘ্রই শেষ হয়ে যাবে!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Progress Bar Section */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-bengali text-muted-foreground">
+                      সাবস্ক্রিপশন অগ্রগতি
+                    </span>
+                    <span className="text-sm font-bengali font-semibold" style={{ 
+                      color: isExpiringSoon ? 'hsl(var(--warning))' : 'hsl(var(--success))' 
+                    }}>
+                      {Math.round(progressPercentage)}%
+                    </span>
+                  </div>
+                  <Progress 
+                    value={progressPercentage} 
+                    className="h-3 bg-muted/50"
+                    style={{
+                      '--progress-color': isExpiringSoon 
+                        ? 'linear-gradient(90deg, hsl(var(--warning)) 0%, hsl(var(--destructive)) 100%)'
+                        : 'linear-gradient(90deg, hsl(var(--success)) 0%, hsl(var(--info)) 100%)'
+                    } as React.CSSProperties}
+                  />
+                  <div className="flex justify-between text-xs font-bengali text-muted-foreground">
+                    <span>শুরু: {formatDateBengali(subscription.start_date)}</span>
+                    <span>শেষ: {formatDateBengali(subscription.end_date)}</span>
+                  </div>
                 </div>
               </div>
             ) : hasPendingSubscription ? (
@@ -299,11 +354,14 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Quick Actions Section */}
+        <QuickActions hasActiveSubscription={hasActiveSubscription} />
+
         {/* Statistics Cards */}
         {hasActiveSubscription && (
           <StatisticsCards 
             subscription={subscription}
-            daysRemaining={Math.ceil((new Date(subscription.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}
+            daysRemaining={daysRemaining}
             daysActive={Math.ceil((new Date().getTime() - new Date(subscription.start_date).getTime()) / (1000 * 60 * 60 * 24))}
             isLoading={subscriptionLoading}
           />
