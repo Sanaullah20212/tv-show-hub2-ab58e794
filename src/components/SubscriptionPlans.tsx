@@ -28,7 +28,7 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState<PaymentDialogState>({ isOpen: false });
-  const [paymentMethod, setPaymentMethod] = useState<'bkash' | 'nagad'>('bkash');
+  const [paymentMethod, setPaymentMethod] = useState<'bkash' | 'nagad' | 'rocket' | 'upi' | 'bank'>('bkash');
   const [lastDigits, setLastDigits] = useState('');
 
   const plans = [
@@ -354,7 +354,7 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
             <div className="space-y-4">
               <div>
                 <Label className="text-base font-semibold mb-2 block font-bengali">💰 পেমেন্ট মেথড</Label>
-                <RadioGroup value={paymentMethod} onValueChange={(value: 'bkash' | 'nagad') => setPaymentMethod(value)} className="space-y-2">
+                <RadioGroup value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)} className="space-y-2">
                   <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                     <RadioGroupItem value="bkash" id="bkash" />
                     <Label htmlFor="bkash" className="text-base font-medium cursor-pointer flex-1 font-bengali">
@@ -365,6 +365,24 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
                     <RadioGroupItem value="nagad" id="nagad" />
                     <Label htmlFor="nagad" className="text-base font-medium cursor-pointer flex-1 font-bengali">
                       💳 নগদ (Nagad)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <RadioGroupItem value="rocket" id="rocket" />
+                    <Label htmlFor="rocket" className="text-base font-medium cursor-pointer flex-1 font-bengali">
+                      🚀 রকেট (Rocket)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <RadioGroupItem value="upi" id="upi" />
+                    <Label htmlFor="upi" className="text-base font-medium cursor-pointer flex-1 font-bengali">
+                      🇮🇳 UPI (India)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <RadioGroupItem value="bank" id="bank" />
+                    <Label htmlFor="bank" className="text-base font-medium cursor-pointer flex-1 font-bengali">
+                      🏦 ব্যাংক ট্রান্সফার
                     </Label>
                   </div>
                 </RadioGroup>
