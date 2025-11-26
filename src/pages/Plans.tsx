@@ -63,56 +63,60 @@ const Plans = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with gradient */}
-      <header className="border-b border-border bg-card/50 backdrop-blur card-gradient">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+      {/* Compact Mobile-Friendly Header */}
+      <header className="border-b border-border bg-card/50 backdrop-blur">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button 
                 onClick={() => navigate('/dashboard')} 
                 variant="ghost" 
                 size="sm"
-                className="card-hover"
+                className="shrink-0"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                ফিরে যান
+                <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">ফিরে যান</span>
               </Button>
-              <div className="p-3 rounded-xl gradient-primary">
-                <Shield className="h-8 w-8 text-white" />
+              <div className="p-2 sm:p-2.5 rounded-lg" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)' }}>
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-bengali">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold font-bengali truncate" style={{ color: 'hsl(var(--primary))' }}>
                   সাবস্ক্রিপশন প্ল্যান
                 </h1>
-                <p className="text-sm text-muted-foreground">আপনার প্রয়োজন অনুযায়ী সেরা প্ল্যান বেছে নিন</p>
+                <p className="text-xs sm:text-sm text-muted-foreground font-bengali hidden sm:block">
+                  আপনার প্রয়োজন অনুযায়ী সেরা প্ল্যান বেছে নিন
+                </p>
               </div>
             </div>
-            <Button onClick={signOut} variant="outline" size="sm" className="card-hover">
-              <LogOut className="h-4 w-4 mr-2" />
-              লগআউট
+            <Button onClick={signOut} variant="outline" size="sm" className="shrink-0 self-end sm:self-auto">
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">লগআউট</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Toggle Buttons */}
-        <div className="flex items-center justify-center gap-4 p-2 bg-muted/50 rounded-xl w-fit mx-auto">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Mobile-Friendly Toggle Buttons */}
+        <div className="flex items-center gap-2 p-1.5 bg-muted/50 rounded-lg w-full sm:w-auto sm:mx-auto">
           <Button
             variant={!showHistory ? "default" : "ghost"}
             onClick={() => navigate('/plans')}
-            className="font-bengali gap-2"
+            className="font-bengali gap-1.5 flex-1 sm:flex-initial text-sm"
+            size="sm"
           >
             <CreditCard className="h-4 w-4" />
-            প্ল্যান দেখুন
+            <span>প্ল্যান</span>
           </Button>
           <Button
             variant={showHistory ? "default" : "ghost"}
             onClick={() => navigate('/plans#history')}
-            className="font-bengali gap-2"
+            className="font-bengali gap-1.5 flex-1 sm:flex-initial text-sm"
+            size="sm"
           >
             <History className="h-4 w-4" />
-            পেমেন্ট হিস্টরি
+            <span>হিস্টরি</span>
           </Button>
         </div>
 

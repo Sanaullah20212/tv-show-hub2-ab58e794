@@ -166,8 +166,8 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
   const currentPlanMonths = currentSubscription?.plan_months;
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {plans.map((plan) => {
           const isCurrentPlan = hasActiveSubscription && currentPlanMonths === plan.months;
           const isDisabled = hasActiveSubscription || hasPendingSubscription;
@@ -199,19 +199,19 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
                 </div>
               )}
 
-              <CardHeader className="text-center relative z-10 pt-10 pb-8">
-                <div className="flex flex-col items-center space-y-6">
+              <CardHeader className="text-center relative z-10 pt-8 sm:pt-10 pb-4 sm:pb-6 px-3 sm:px-6">
+                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                   {/* Icon Circle */}
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg ${
+                  <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-lg ${
                     plan.id === '1-month' ? 'bg-slate-600 dark:bg-slate-500' :
                     plan.id === '2-month' ? 'bg-primary' :
                     'bg-accent'
                   }`}>
-                    <Calendar className="h-10 w-10 text-white" />
+                    <Calendar className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
                   </div>
 
                   {/* Plan Duration */}
-                  <CardTitle className={`text-2xl font-bold font-bengali ${
+                  <CardTitle className={`text-xl sm:text-2xl font-bold font-bengali ${
                     plan.id === '1-month' ? 'text-slate-700 dark:text-slate-300' :
                     plan.id === '2-month' ? 'text-primary' :
                     'text-accent'
@@ -220,16 +220,16 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
                   </CardTitle>
 
                   {/* Price */}
-                  <div className="space-y-2">
-                    <div className="flex items-baseline justify-center space-x-2">
-                      <span className={`text-5xl font-bold font-bengali ${
+                  <div className="space-y-1">
+                    <div className="flex items-baseline justify-center space-x-1.5">
+                      <span className={`text-4xl sm:text-5xl font-bold font-bengali ${
                         plan.id === '1-month' ? 'text-destructive' :
                         plan.id === '2-month' ? 'text-primary' :
                         'text-accent'
                       }`}>
                         {plan.price}
                       </span>
-                      <span className={`text-xl font-semibold font-bengali ${
+                      <span className={`text-lg sm:text-xl font-semibold font-bengali ${
                         plan.id === '1-month' ? 'text-destructive' :
                         plan.id === '2-month' ? 'text-primary' :
                         'text-accent'
@@ -258,11 +258,11 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-6 relative z-10 px-6 pb-8">
+              <CardContent className="space-y-3 sm:space-y-4 relative z-10 px-3 sm:px-4 pb-4 sm:pb-6">
                 <Button 
                   onClick={() => handleSubscribeClick(plan.id, plan.months, plan.price)}
                   disabled={isDisabled}
-                  className={`w-full h-14 text-base font-bold font-bengali rounded-xl transition-all duration-300 shadow-lg ${
+                  className={`w-full h-12 sm:h-14 text-sm sm:text-base font-bold font-bengali rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg ${
                     isCurrentPlan ? 
                       'bg-success hover:bg-success/90' :
                     !isDisabled ?
