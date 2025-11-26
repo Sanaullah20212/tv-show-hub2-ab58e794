@@ -97,13 +97,14 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Compact Header */}
-      <header className="sticky top-0 z-50 border-b bg-card/90 backdrop-blur-xl shadow-sm">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 sm:gap-3">
+      {/* Compact Modern Header */}
+      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-xl">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3">
+          <div className="flex items-center justify-between">
+            {/* Left: Logo and Name */}
+            <div className="flex items-center gap-2 sm:gap-2.5">
               <div 
-                className="p-1.5 sm:p-2 rounded-lg"
+                className="p-2 sm:p-2.5 rounded-lg"
                 style={{ 
                   background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
                 }}
@@ -111,7 +112,7 @@ const Dashboard = () => {
                 <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold font-bengali" style={{ color: 'hsl(var(--primary))' }}>
+                <h1 className="text-base sm:text-lg font-bold font-bengali" style={{ color: 'hsl(var(--primary))' }}>
                   ড্যাশবোর্ড
                 </h1>
                 <p className="text-xs text-muted-foreground font-bengali hidden sm:block">
@@ -119,26 +120,37 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
+
+            {/* Right: Icon Buttons */}
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <NotificationBell userId={user.id} />
               <ThemeToggle />
               <Button 
                 onClick={() => navigate('/settings')} 
-                variant="outline" 
-                size="sm" 
-                className="font-bengali"
+                variant="ghost" 
+                size="icon"
+                className="h-9 w-9 rounded-lg"
+                title="সেটিংস"
               >
-                <User className="h-4 w-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">সেটিংস</span>
+                <Settings className="h-5 w-5" />
               </Button>
               <Button 
                 onClick={() => navigate('/')} 
-                variant="outline" 
-                size="sm" 
-                className="font-bengali hidden sm:flex"
+                variant="ghost" 
+                size="icon"
+                className="h-9 w-9 rounded-lg"
+                title="হোম"
               >
-                <Home className="h-4 w-4 mr-1.5" />
-                হোম
+                <Home className="h-5 w-5" />
+              </Button>
+              <Button 
+                onClick={signOut} 
+                variant="ghost" 
+                size="icon"
+                className="h-9 w-9 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+                title="লগআউট"
+              >
+                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>
