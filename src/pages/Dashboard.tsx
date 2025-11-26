@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, Smartphone, Archive, Shield, LogOut, FileArchive, Key, Home, Settings, User, AlertCircle, RefreshCcw, HeadphonesIcon, MessageCircle, Facebook } from 'lucide-react';
+import { CalendarDays, Smartphone, Archive, Shield, LogOut, FileArchive, Key, Home, Settings, User, AlertCircle, HeadphonesIcon, MessageCircle, Facebook } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { supabase } from '@/integrations/supabase/client';
@@ -228,15 +228,6 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Button 
-                      onClick={() => navigate('/plans')}
-                      size="sm"
-                      variant="outline"
-                      className="font-bengali"
-                    >
-                      <RefreshCcw className="h-4 w-4 mr-1.5" />
-                      প্ল্যান নবায়ন
-                    </Button>
                     <Button 
                       onClick={() => {
                         const supportSection = document.getElementById('support-links');
