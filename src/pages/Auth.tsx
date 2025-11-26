@@ -196,9 +196,6 @@ const Auth = () => {
                         />
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {selectedCountry.dial} কোড স্বয়ংক্রিয়ভাবে যুক্ত হবে
-                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-sm font-medium">
@@ -280,9 +277,6 @@ const Auth = () => {
                           />
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {selectedCountry.dial} কোড স্বয়ংক্রিয়ভাবে যুক্ত হবে
-                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password" className="text-sm font-medium">
