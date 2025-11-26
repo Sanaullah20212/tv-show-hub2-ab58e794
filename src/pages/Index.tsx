@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Shield, Tv, Archive, ArrowRight, Users, Star, Sparkles, Zap, Heart, MessageCircle, Facebook } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
+import { useState, useEffect } from 'react';
 
 const Index = () => {
   const { user, loading } = useAuth();
   const { settings } = useSettings();
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeSection, setActiveSection] = useState('');
 
   if (loading) {
     return (
@@ -62,6 +65,53 @@ const Index = () => {
   // Don't auto-redirect logged in users - let them view the home page
   // They can navigate to dashboard manually
 
+  // Track scroll progress
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const progress = (window.scrollY / totalHeight) * 100;
+      setScrollProgress(progress);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Track active section
+  useEffect(() => {
+    const sections = ['services', 'pricing', 'how-to-start'];
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: '-20% 0px -70% 0px',
+        threshold: 0
+      }
+    );
+
+    sections.forEach((sectionId) => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      sections.forEach((sectionId) => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+    };
+  }, []);
+
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -71,14 +121,26 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-info/10">
+      {/* Scroll Progress Indicator */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-white/10">
+        <div 
+          className="h-full bg-gradient-to-r from-primary via-info to-success transition-all duration-300 shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
       {/* Navigation Bar */}
-      <nav className="bg-gradient-to-r from-primary via-info to-success py-3 sm:py-4">
+      <nav className="sticky top-0 z-40 bg-gradient-to-r from-primary via-info to-success py-3 sm:py-4 shadow-lg backdrop-blur-sm">
         <div className="container mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto">
             <Button 
               onClick={() => scrollToSection('services')}
               variant="ghost" 
-              className="text-white hover:bg-white/20 font-bengali text-xs sm:text-base whitespace-nowrap px-2 sm:px-4"
+              className={`text-white hover:bg-white/20 font-bengali text-xs sm:text-base whitespace-nowrap px-2 sm:px-4 transition-all duration-300 ${
+                activeSection === 'services' 
+                  ? 'bg-white/30 shadow-lg scale-105 border-b-2 border-white' 
+                  : ''
+              }`}
             >
               আমাদের সেবাসমূহ
             </Button>
@@ -86,7 +148,11 @@ const Index = () => {
             <Button 
               onClick={() => scrollToSection('pricing')}
               variant="ghost" 
-              className="text-white hover:bg-white/20 font-bengali text-xs sm:text-base whitespace-nowrap px-2 sm:px-4"
+              className={`text-white hover:bg-white/20 font-bengali text-xs sm:text-base whitespace-nowrap px-2 sm:px-4 transition-all duration-300 ${
+                activeSection === 'pricing' 
+                  ? 'bg-white/30 shadow-lg scale-105 border-b-2 border-white' 
+                  : ''
+              }`}
             >
               সাবস্ক্রিপশন প্ল্যান
             </Button>
@@ -94,7 +160,11 @@ const Index = () => {
             <Button 
               onClick={() => scrollToSection('how-to-start')}
               variant="ghost" 
-              className="text-white hover:bg-white/20 font-bengali text-xs sm:text-base whitespace-nowrap px-2 sm:px-4"
+              className={`text-white hover:bg-white/20 font-bengali text-xs sm:text-base whitespace-nowrap px-2 sm:px-4 transition-all duration-300 ${
+                activeSection === 'how-to-start' 
+                  ? 'bg-white/30 shadow-lg scale-105 border-b-2 border-white' 
+                  : ''
+              }`}
             >
               কিভাবে শুরু করবেন
             </Button>
