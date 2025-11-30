@@ -322,34 +322,76 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
           </DialogHeader>
           
           <div className="space-y-4">
-            {/* Compact Payment Instructions */}
-            <div className="p-4 gradient-secondary rounded-xl border border-primary/20">
-              <h3 className="font-semibold text-white text-lg mb-3 flex items-center space-x-2 font-bengali">
-                <span>📋</span>
-                <span>পেমেন্ট নির্দেশনা:</span>
-              </h3>
-              <div className="space-y-3 text-white/90 text-sm font-bengali">
-                <p>১. নিচের নম্বরে <strong className="text-yellow-300">সেন্ড মানি</strong> অথবা <strong className="text-yellow-300">ক্যাশ ইন</strong> করুন:</p>
-                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
-                  <span className="font-bold text-xl text-green-300">📱 01637792810</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigator.clipboard.writeText('01637792810')}
-                    className="h-8 px-3 bg-white/20 text-white border-white/30 hover:bg-white/30"
-                  >
-                    📋 কপি
-                  </Button>
-                </div>
-                <p>২. টাকা পাঠানোর পর শেষ ৪ সংখ্যা নিচে লিখুন</p>
-                <div className="p-3 bg-orange-500/20 rounded-lg border border-orange-300/30">
-                  <p className="text-orange-100 text-sm">
-                    <strong>⚠️ দ্রষ্টব্য:</strong> পেমেন্ট <strong className="text-yellow-300">পারসোনাল নম্বর</strong> হিসেবে করুন (এজেন্ট নয়)
-                  </p>
+            {/* Payment Instructions - Different for UPI vs Bangladesh methods */}
+            {paymentMethod === 'upi' ? (
+              <div className="p-4 bg-gradient-to-br from-orange-500/90 to-orange-600/90 rounded-xl border border-orange-400/30">
+                <h3 className="font-semibold text-white text-lg mb-3 flex items-center space-x-2">
+                  <span>🇮🇳</span>
+                  <span>UPI Payment Instructions:</span>
+                </h3>
+                <div className="space-y-3 text-white/90 text-sm">
+                  <p>1. Send payment to our UPI ID:</p>
+                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
+                    <span className="font-bold text-xl text-green-300">example@upi</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText('example@upi');
+                        toast({ title: "Copied!", description: "UPI ID copied to clipboard" });
+                      }}
+                      className="h-8 px-3 bg-white/20 text-white border-white/30 hover:bg-white/30"
+                    >
+                      📋 Copy
+                    </Button>
+                  </div>
+                  <div className="p-3 bg-white/10 rounded-lg">
+                    <p className="text-yellow-200 font-semibold">
+                      💰 Amount: ₹{paymentDialog.price ? Math.round(paymentDialog.price * 1.2) : 0} INR
+                    </p>
+                    <p className="text-xs text-white/70 mt-1">(Approx. conversion from BDT)</p>
+                  </div>
+                  <p>2. After payment, enter the last 4 digits of your UPI transaction ID</p>
+                  <div className="p-3 bg-green-500/20 rounded-lg border border-green-300/30">
+                    <p className="text-green-100 text-sm">
+                      <strong>✅ Supported Apps:</strong> Google Pay, PhonePe, Paytm, BHIM, Amazon Pay
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-4 gradient-secondary rounded-xl border border-primary/20">
+                <h3 className="font-semibold text-white text-lg mb-3 flex items-center space-x-2 font-bengali">
+                  <span>📋</span>
+                  <span>পেমেন্ট নির্দেশনা:</span>
+                </h3>
+                <div className="space-y-3 text-white/90 text-sm font-bengali">
+                  <p>১. নিচের নম্বরে <strong className="text-yellow-300">সেন্ড মানি</strong> অথবা <strong className="text-yellow-300">ক্যাশ ইন</strong> করুন:</p>
+                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
+                    <span className="font-bold text-xl text-green-300">📱 01637792810</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText('01637792810');
+                        toast({ title: "কপি হয়েছে!", description: "নম্বর কপি করা হয়েছে" });
+                      }}
+                      className="h-8 px-3 bg-white/20 text-white border-white/30 hover:bg-white/30"
+                    >
+                      📋 কপি
+                    </Button>
+                  </div>
+                  <p>২. টাকা পাঠানোর পর শেষ ৪ সংখ্যা নিচে লিখুন</p>
+                  <div className="p-3 bg-orange-500/20 rounded-lg border border-orange-300/30">
+                    <p className="text-orange-100 text-sm">
+                      <strong>⚠️ দ্রষ্টব্য:</strong> পেমেন্ট <strong className="text-yellow-300">পারসোনাল নম্বর</strong> হিসেবে করুন (এজেন্ট নয়)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div>
@@ -390,12 +432,12 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
               
               <div>
                 <Label htmlFor="lastDigits" className="text-base font-semibold mb-2 block font-bengali">
-                  🔢 শেষ ৪টি ডিজিট
+                  {paymentMethod === 'upi' ? '🔢 Last 4 digits of Transaction ID' : '🔢 শেষ ৪টি ডিজিট'}
                 </Label>
                 <Input
                   id="lastDigits"
                   type="text"
-                  placeholder="যেমন: 1234"
+                  placeholder={paymentMethod === 'upi' ? 'e.g., 1234' : 'যেমন: 1234'}
                   value={lastDigits}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '').slice(0, 4);
@@ -405,7 +447,10 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
                   className="text-center text-xl h-12 font-bold bg-muted/50 border-2"
                 />
                 <p className="text-xs text-muted-foreground mt-2 p-2 bg-muted/30 rounded-lg font-bengali">
-                  💡 টাকা পাঠানোর পর যে নম্বর থেকে টাকা পাঠিয়েছেন তার শেষ ৪টি সংখ্যা লিখুন
+                  {paymentMethod === 'upi' 
+                    ? '💡 Enter the last 4 digits of your UPI transaction reference number'
+                    : '💡 টাকা পাঠানোর পর যে নম্বর থেকে টাকা পাঠিয়েছেন তার শেষ ৪টি সংখ্যা লিখুন'
+                  }
                 </p>
               </div>
               
