@@ -186,17 +186,23 @@ const Index = () => {
               <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 mb-4 sm:mb-6 animate-fade-in">
                 <div className="relative group">
                   {/* Outer glow effect */}
-                  <div className="absolute -inset-4 bg-gradient-to-br from-pink-500/50 via-fuchsia-500/40 to-pink-600/50 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500 animate-pulse"></div>
+                  <div className="absolute -inset-4 bg-gradient-to-br from-pink-500/40 via-fuchsia-400/30 to-pink-600/40 rounded-full blur-3xl group-hover:blur-[40px] transition-all duration-500 animate-pulse"></div>
                   
-                  {/* Main circular container with border */}
-                  <div className="relative p-1 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-500 to-pink-600 group-hover:scale-110 transition-all duration-500 shadow-2xl shadow-pink-500/30">
-                    {/* Inner dark circle */}
-                    <div className="p-4 sm:p-5 lg:p-6 bg-slate-900/95 rounded-full flex items-center justify-center">
-                      {/* Play icon */}
-                      <Play 
-                        className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-pink-500 fill-pink-500 drop-shadow-lg ml-1" 
-                        strokeWidth={2.5}
-                      />
+                  {/* Glassy container */}
+                  <div className="relative p-5 sm:p-6 lg:p-7 bg-white/15 backdrop-blur-xl rounded-full shadow-2xl border-2 border-white/30 group-hover:scale-110 group-hover:border-white/50 group-hover:bg-white/20 transition-all duration-500">
+                    {/* Inner glass shine */}
+                    <div className="absolute inset-2 rounded-full bg-gradient-to-br from-white/20 via-transparent to-transparent"></div>
+                    
+                    {/* Inner circle with gradient border */}
+                    <div className="relative p-0.5 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-500 to-pink-600">
+                      {/* Dark inner circle */}
+                      <div className="p-3 sm:p-4 lg:p-5 bg-slate-900/90 backdrop-blur-sm rounded-full flex items-center justify-center">
+                        {/* Play icon */}
+                        <Play 
+                          className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-pink-500 fill-pink-500 drop-shadow-lg ml-0.5" 
+                          strokeWidth={2.5}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
