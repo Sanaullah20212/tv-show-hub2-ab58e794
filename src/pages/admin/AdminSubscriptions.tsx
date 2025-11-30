@@ -368,9 +368,13 @@ const AdminSubscriptions = () => {
                             <SelectValue placeholder="পেমেন্ট মেথড নির্বাচন করুন" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="bkash">বিকাশ (bKash)</SelectItem>
-                            <SelectItem value="nagad">নগদ (Nagad)</SelectItem>
-                            <SelectItem value="others">অন্যান্য (Others)</SelectItem>
+                            <SelectItem value="bkash">📱 বিকাশ (bKash)</SelectItem>
+                            <SelectItem value="nagad">💳 নগদ (Nagad)</SelectItem>
+                            <SelectItem value="rocket">🚀 রকেট (Rocket)</SelectItem>
+                            <SelectItem value="upi">🇮🇳 UPI (India)</SelectItem>
+                            <SelectItem value="bank">🏦 ব্যাংক ট্রান্সফার</SelectItem>
+                            <SelectItem value="cash">💵 ক্যাশ (Cash)</SelectItem>
+                            <SelectItem value="free">🎁 ফ্রি (Promo)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
