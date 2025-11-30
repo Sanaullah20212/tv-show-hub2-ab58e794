@@ -56,6 +56,7 @@ const AdminSubscriptions = () => {
   const [useCustomDate, setUseCustomDate] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [customAmount, setCustomAmount] = useState<string>('');
 
   const predefinedPlans = [
     { id: 'plan1', name: '১ মাস - ২০০ টাকা', months: 1, price: 200 },
@@ -376,12 +377,15 @@ const AdminSubscriptions = () => {
         subscriptionEndDate = setEndTimeToBangladeshMidnight(subscriptionEndDate);
       }
 
+      // Use custom amount if provided, otherwise use plan price
+      const actualPrice = customAmount ? parseInt(customAmount, 10) : plan.price;
+
       const { error } = await supabase
         .from('subscriptions')
         .insert({
           user_id: selectedUserId,
           plan_months: plan.months,
-          price_taka: plan.price,
+          price_taka: actualPrice,
           payment_method: paymentMethod,
           status: 'active' as const,
           start_date: subscriptionStartDate.toISOString(),
@@ -390,7 +394,7 @@ const AdminSubscriptions = () => {
 
       if (error) throw error;
 
-      toast.success('সাবস্ক্রিপশন সফলভাবে তৈরি হয়েছে');
+      toast.success(`সাবস্ক্রিপশন সফলভাবে তৈরি হয়েছে (${actualPrice} টাকা)`);
       setDialogOpen(false);
       setSelectedUserId('');
       setSelectedPlan('');
@@ -398,6 +402,7 @@ const AdminSubscriptions = () => {
       setUseCustomDate(false);
       setStartDate('');
       setEndDate('');
+      setCustomAmount('');
       fetchSubscriptions();
     } catch (error) {
       console.error('Error:', error);
@@ -504,6 +509,18 @@ const AdminSubscriptions = () => {
                             <SelectItem value="free">🎁 ফ্রি (Promo)</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>প্রদত্ত টাকার পরিমাণ (ঐচ্ছিক)</Label>
+                        <Input 
+                          type="number"
+                          placeholder={selectedPlan ? `ডিফল্ট: ${predefinedPlans.find(p => p.id === selectedPlan)?.price || 0} টাকা` : 'প্ল্যান সিলেক্ট করুন'}
+                          value={customAmount}
+                          onChange={(e) => setCustomAmount(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          কাস্টম টাকা না দিলে প্ল্যানের ডিফল্ট মূল্য ব্যবহার হবে
+                        </p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Checkbox 
