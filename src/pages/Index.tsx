@@ -169,8 +169,8 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      {/* Hero Section - Compact to fit everything in viewport */}
+      <section className="relative overflow-hidden min-h-[calc(100vh-52px)] flex items-center">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-info to-success">
           <div className="absolute inset-0 opacity-20">
@@ -179,92 +179,92 @@ const Index = () => {
           </div>
         </div>
         
-        <div className="relative">
-          <div className="container mx-auto px-4 py-16 sm:py-20 lg:py-24">
+        <div className="relative w-full">
+          <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-10">
             <div className="text-center max-w-6xl mx-auto">
               {/* Logo and Title */}
-              <div className="flex flex-col items-center justify-center space-y-6 mb-8 animate-fade-in">
+              <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 mb-4 sm:mb-6 animate-fade-in">
                 <div className="relative group">
                   <div className="absolute inset-0 bg-white/30 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
-                  <div className="relative p-5 sm:p-6 bg-white/20 rounded-full backdrop-blur-sm shadow-2xl border-2 border-white/30 group-hover:scale-110 transition-transform duration-500">
-                    <Shield className="h-14 w-14 sm:h-20 sm:w-20 lg:h-24 lg:w-24 text-white drop-shadow-2xl" />
+                  <div className="relative p-3 sm:p-4 lg:p-5 bg-white/20 rounded-full backdrop-blur-sm shadow-2xl border-2 border-white/30 group-hover:scale-110 transition-transform duration-500">
+                    <Shield className="h-10 w-10 sm:h-14 sm:w-14 lg:h-16 lg:w-16 text-white drop-shadow-2xl" />
                   </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold drop-shadow-2xl tracking-tight animate-scale-in">
+                <div className="space-y-1.5">
+                  <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold drop-shadow-2xl tracking-tight animate-scale-in">
                     <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-[length:200%_100%] animate-gradient-x bg-clip-text text-transparent">
                       BTSPRO24.COM
                     </span>
                   </h1>
-                  <div className="h-1.5 w-32 sm:w-48 mx-auto bg-gradient-to-r from-transparent via-white to-transparent rounded-full animate-pulse"></div>
+                  <div className="h-1 w-24 sm:w-36 mx-auto bg-gradient-to-r from-transparent via-white to-transparent rounded-full animate-pulse"></div>
                 </div>
               </div>
               
               {/* Tagline */}
-              <p className="text-base sm:text-xl lg:text-3xl text-white/95 mb-10 sm:mb-12 leading-relaxed drop-shadow-lg px-4 font-bengali font-medium max-w-4xl mx-auto animate-fade-in">
+              <p className="text-sm sm:text-lg lg:text-xl text-white/95 mb-5 sm:mb-6 leading-relaxed drop-shadow-lg px-4 font-bengali font-medium max-w-3xl mx-auto animate-fade-in">
                 ব্যবসায়িক ফাইলের জন্য এবং টিভি শো দেখার অন্যতম ওয়েবসাইট
               </p>
               
               {/* CTA Button */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 sm:mb-16 animate-fade-in px-4">
+              <div className="flex justify-center items-center mb-6 sm:mb-8 animate-fade-in px-4">
                 {user ? (
                   <Button 
                     asChild 
                     size="lg" 
-                    className="text-base sm:text-lg px-8 sm:px-12 py-6 sm:py-7 bg-white text-primary hover:bg-white/95 shadow-2xl hover:shadow-white/20 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 w-full sm:w-auto rounded-xl font-semibold"
+                    className="text-sm sm:text-base px-6 sm:px-10 py-4 sm:py-5 bg-white text-primary hover:bg-white/95 shadow-2xl hover:shadow-white/20 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 rounded-xl font-semibold"
                   >
                     <a href="/dashboard" className="font-bengali flex items-center justify-center gap-2">
-                      <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
+                      <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
                       <span>ড্যাশবোর্ডে যান</span>
-                      <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                     </a>
                   </Button>
                 ) : (
                   <Button 
                     asChild 
                     size="lg" 
-                    className="text-base sm:text-lg px-8 sm:px-12 py-6 sm:py-7 bg-white text-primary hover:bg-white/95 shadow-2xl hover:shadow-white/20 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 w-full sm:w-auto rounded-xl font-semibold"
+                    className="text-sm sm:text-base px-6 sm:px-10 py-4 sm:py-5 bg-white text-primary hover:bg-white/95 shadow-2xl hover:shadow-white/20 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 rounded-xl font-semibold"
                   >
                     <a href="/auth" className="font-bengali flex items-center justify-center gap-2">
-                      <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
+                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                       <span>এখনই শুরু করুন</span>
-                      <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                     </a>
                   </Button>
                 )}
               </div>
 
-              {/* Contact Us Section - Redesigned */}
+              {/* Contact Us Section - Compact */}
               {(settings?.social_links?.whatsapp || settings?.social_links?.facebook) && (
                 <div className="animate-fade-in px-4">
-                  <div className="max-w-3xl mx-auto">
+                  <div className="max-w-2xl mx-auto">
                     {/* Card with glass effect */}
                     <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-white/20 to-white/30 rounded-3xl blur-xl"></div>
-                      <div className="relative bg-white/10 backdrop-blur-md border-2 border-white/30 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl">
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-white/20 to-white/30 rounded-2xl blur-xl"></div>
+                      <div className="relative bg-white/10 backdrop-blur-md border-2 border-white/30 rounded-2xl p-4 sm:p-6 shadow-2xl">
                         {/* Header with icon */}
-                        <div className="flex items-center justify-center gap-3 mb-4 sm:mb-6">
-                          <div className="p-2 bg-white/20 rounded-full">
-                            <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                        <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
+                          <div className="p-1.5 bg-white/20 rounded-full">
+                            <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                           </div>
-                          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white font-bengali drop-shadow-lg">
+                          <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white font-bengali drop-shadow-lg">
                             সাহায্য প্রয়োজন?
                           </h3>
                         </div>
                         
                         {/* Description */}
-                        <p className="text-white/90 text-center mb-6 sm:mb-8 font-bengali text-sm sm:text-base lg:text-lg leading-relaxed drop-shadow-md">
+                        <p className="text-white/90 text-center mb-3 sm:mb-4 font-bengali text-xs sm:text-sm leading-relaxed drop-shadow-md">
                           যেকোনো প্রশ্ন বা সমস্যার জন্য আমাদের সাথে যোগাযোগ করুন। আমরা সবসময় সাহায্য করতে প্রস্তুত!
                         </p>
                         
                         {/* Contact Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center items-stretch sm:items-center">
                           {settings?.social_links?.whatsapp && (
                             <Button
                               asChild
-                              size="lg"
-                              className="bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#1da851] hover:to-[#0d7a5f] text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 font-bengali text-sm sm:text-base py-5 sm:py-6 rounded-xl font-semibold border-2 border-white/20"
+                              size="default"
+                              className="bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#1da851] hover:to-[#0d7a5f] text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 font-bengali text-xs sm:text-sm py-3 sm:py-4 rounded-lg font-semibold border border-white/20"
                             >
                               <a
                                 href={settings?.social_links?.whatsapp || '#'}
@@ -272,7 +272,7 @@ const Index = () => {
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center gap-2"
                               >
-                                <MessageCircle className="h-5 w-5" />
+                                <MessageCircle className="h-4 w-4" />
                                 হোয়াটসঅ্যাপে যোগাযোগ করুন
                               </a>
                             </Button>
@@ -280,8 +280,8 @@ const Index = () => {
                           {settings?.social_links?.facebook && (
                             <Button
                               asChild
-                              size="lg"
-                              className="bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9] hover:from-[#7C3AED] hover:to-[#5B21B6] text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 font-bengali text-sm sm:text-base py-5 sm:py-6 rounded-xl font-semibold border-2 border-white/20"
+                              size="default"
+                              className="bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9] hover:from-[#7C3AED] hover:to-[#5B21B6] text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 font-bengali text-xs sm:text-sm py-3 sm:py-4 rounded-lg font-semibold border border-white/20"
                             >
                               <a
                                 href={settings?.social_links?.facebook || '#'}
@@ -289,13 +289,13 @@ const Index = () => {
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center gap-2"
                               >
-                                <Facebook className="h-5 w-5" />
+                                <Facebook className="h-4 w-4" />
                                 ফেসবুকে মেসেজ করুন
                               </a>
                             </Button>
                           )}
                         </div>
-                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
