@@ -180,7 +180,7 @@ const Index = () => {
         </div>
         
         <div className="relative w-full">
-          <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-10">
+          <div className="container mx-auto px-4 py-2 sm:py-3 lg:py-4">
             <div className="text-center max-w-6xl mx-auto">
               {/* Logo and Title */}
               <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 mb-4 sm:mb-6 animate-fade-in">
