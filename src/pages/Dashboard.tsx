@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CalendarDays, Smartphone, Archive, Shield, LogOut, FileArchive, Key, Home, Settings, User, AlertCircle, HeadphonesIcon, MessageCircle, Facebook } from 'lucide-react';
+import { CalendarDays, Smartphone, Archive, Shield, LogOut, FileArchive, Key, Home, Settings, User, AlertCircle, HeadphonesIcon, MessageCircle, Facebook, Pause } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,9 @@ import ZipPasswords from '@/components/ZipPasswords';
 import DriveFiles from '@/components/DriveFiles';
 import { Progress } from '@/components/ui/progress';
 import { formatDateBengali } from '@/lib/utils';
+import QuickActions from '@/components/QuickActions';
+import UserWelcomeCard from '@/components/UserWelcomeCard';
+import RecentActivityPreview from '@/components/RecentActivityPreview';
 
 const Dashboard = () => {
   const { user, profile, loading, signOut } = useAuth();
@@ -82,13 +85,14 @@ const Dashboard = () => {
     return <Navigate to="/admin" replace />;
   }
 
-  const hasActiveSubscription = subscription && subscription.status === 'active' && new Date(subscription.end_date) > new Date();
+  const isPaused = subscription?.is_paused;
+  const hasActiveSubscription = subscription && subscription.status === 'active' && new Date(subscription.end_date) > new Date() && !isPaused;
   const hasPendingSubscription = subscription && subscription.status === 'pending';
   
   // Calculate subscription progress
   const daysRemaining = hasActiveSubscription 
     ? Math.ceil((new Date(subscription.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-    : 0;
+    : isPaused ? subscription?.paused_days_remaining || 0 : 0;
   const totalDays = hasActiveSubscription
     ? Math.ceil((new Date(subscription.end_date).getTime() - new Date(subscription.start_date).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
@@ -157,8 +161,57 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-5 max-w-7xl">
-        {/* Compact Subscription Status Card matching screenshot */}
+      <div className="container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-5 max-w-7xl pb-24 md:pb-6">
+        {/* Welcome Card */}
+        <UserWelcomeCard 
+          displayName={profile?.display_name}
+          mobileNumber={profile?.mobile_number}
+          userType={profile?.user_type || 'mobile'}
+          subscription={subscription}
+          hasActiveSubscription={hasActiveSubscription}
+          hasPendingSubscription={hasPendingSubscription}
+        />
+
+        {/* Quick Actions */}
+        <QuickActions 
+          userType={profile?.user_type || 'mobile'}
+          hasActiveSubscription={hasActiveSubscription}
+          onRefresh={fetchSubscription}
+        />
+
+        {/* Paused Subscription Notice */}
+        {isPaused && (
+          <Card className="overflow-hidden border-warning/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="p-2.5 rounded-lg"
+                  style={{ backgroundColor: 'hsl(var(--warning)/0.15)' }}
+                >
+                  <Pause className="h-5 w-5" style={{ color: 'hsl(var(--warning))' }} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold font-bengali" style={{ color: 'hsl(var(--warning))' }}>
+                    সাবস্ক্রিপশন বিরতিতে আছে
+                  </h3>
+                  <p className="text-xs text-muted-foreground font-bengali">
+                    আপনার {subscription?.paused_days_remaining || 0} দিন বাকি আছে। অ্যাডমিনের সাথে যোগাযোগ করে পুনরায় চালু করুন।
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => navigate('/support')}
+                  size="sm"
+                  variant="outline"
+                  className="font-bengali shrink-0 border-warning/50 text-warning hover:bg-warning/10"
+                >
+                  যোগাযোগ
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Compact Subscription Status Card */}
         <Card className="overflow-hidden relative hover:shadow-lg transition-all duration-300">
           <CardContent className="p-4 sm:p-6">
             {subscriptionLoading ? (
@@ -188,6 +241,8 @@ const Dashboard = () => {
                       style={{ 
                         background: hasActiveSubscription 
                           ? 'linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--info)) 100%)'
+                          : isPaused
+                          ? 'hsl(var(--warning))'
                           : 'hsl(var(--muted))',
                       }}
                     >
@@ -206,6 +261,17 @@ const Dashboard = () => {
                             }}
                           >
                             সক্রিয়
+                          </Badge>
+                        ) : isPaused ? (
+                          <Badge 
+                            className="px-2 py-0.5 text-xs font-bengali"
+                            style={{ 
+                              backgroundColor: 'hsl(var(--warning)/0.15)',
+                              color: 'hsl(var(--warning))',
+                              border: '1px solid hsl(var(--warning)/0.3)'
+                            }}
+                          >
+                            বিরতি
                           </Badge>
                         ) : hasPendingSubscription ? (
                           <Badge 
@@ -235,6 +301,11 @@ const Dashboard = () => {
                         <p className="text-sm text-muted-foreground font-bengali mt-0.5">
                           {subscription.plan_months} মাস • {daysRemaining} দিন বাকি
                           {isExpiringSoon && <span className="text-warning ml-2">⚠️</span>}
+                        </p>
+                      )}
+                      {isPaused && (
+                        <p className="text-sm text-muted-foreground font-bengali mt-0.5">
+                          {subscription?.paused_days_remaining || 0} দিন বাকি আছে (বিরতি)
                         </p>
                       )}
                     </div>
@@ -331,7 +402,7 @@ const Dashboard = () => {
                 )}
                 
                 {/* No subscription message */}
-                {!hasActiveSubscription && !hasPendingSubscription && (
+                {!hasActiveSubscription && !hasPendingSubscription && !isPaused && (
                   <div className="text-center py-4">
                     <p className="text-sm text-muted-foreground font-bengali mb-2">
                       কোন সক্রিয় সাবস্ক্রিপশন নেই
@@ -356,15 +427,35 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Statistics Cards */}
-        {hasActiveSubscription && (
-          <StatisticsCards 
-            subscription={subscription}
-            daysRemaining={daysRemaining}
-            daysActive={Math.ceil((new Date().getTime() - new Date(subscription.start_date).getTime()) / (1000 * 60 * 60 * 24))}
-            isLoading={subscriptionLoading}
-          />
-        )}
+        {/* Statistics and Activity Grid */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Statistics Cards */}
+          <div className="lg:col-span-2">
+            {hasActiveSubscription && (
+              <StatisticsCards 
+                subscription={subscription}
+                daysRemaining={daysRemaining}
+                daysActive={Math.ceil((new Date().getTime() - new Date(subscription.start_date).getTime()) / (1000 * 60 * 60 * 24))}
+                isLoading={subscriptionLoading}
+              />
+            )}
+            {!hasActiveSubscription && (
+              <Card className="overflow-hidden">
+                <CardContent className="p-6 text-center">
+                  <Shield className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground font-bengali mb-2">
+                    সাবস্ক্রিপশন নিলে স্ট্যাটিস্টিক্স দেখতে পাবেন
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          
+          {/* Recent Activity */}
+          <div className="lg:col-span-1">
+            <RecentActivityPreview userId={user.id} />
+          </div>
+        </div>
 
         {/* Service Access Cards - More Compact */}
         <div className="grid gap-4">
@@ -406,7 +497,7 @@ const Dashboard = () => {
                     hasActiveSubscription={hasActiveSubscription} 
                   />
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3" id="zip-passwords">
                     <DriveFiles 
                       userType="business" 
                       hasActiveSubscription={hasActiveSubscription} 
@@ -419,25 +510,44 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {/* No subscription message */}
-          {!hasActiveSubscription && (
-            <Card className="overflow-hidden relative">
+          {/* No subscription - Show helpful message */}
+          {!hasActiveSubscription && !isPaused && (
+            <Card className="overflow-hidden relative border-dashed">
               <CardContent className="text-center p-6">
-                <Shield className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground font-bengali font-medium mb-3">
-                  সার্ভিস ব্যবহার করতে সক্রিয় সাবস্ক্রিপশন প্রয়োজন
-                </p>
-                <Button 
-                  onClick={() => navigate('/plans')}
-                  size="sm"
-                  className="font-bengali"
-                  style={{
-                    background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
-                    color: 'white'
-                  }}
+                <div 
+                  className="p-3 rounded-full mx-auto mb-4 w-fit"
+                  style={{ backgroundColor: 'hsl(var(--primary)/0.1)' }}
                 >
-                  প্ল্যান দেখুন
-                </Button>
+                  <Shield className="h-10 w-10" style={{ color: 'hsl(var(--primary))' }} />
+                </div>
+                <h3 className="text-lg font-bold font-bengali mb-2">
+                  সার্ভিস অ্যাক্সেস করুন
+                </h3>
+                <p className="text-sm text-muted-foreground font-bengali mb-4 max-w-md mx-auto">
+                  {profile?.user_type === 'business' 
+                    ? 'বিজনেস প্ল্যান নিলে ড্রাইভ, টিভি এবং জিপ পাসওয়ার্ড অ্যাক্সেস পাবেন'
+                    : 'মোবাইল প্ল্যান নিলে ড্রাইভ এবং টিভি অ্যাক্সেস পাবেন'
+                  }
+                </p>
+                <div className="flex gap-3 justify-center flex-wrap">
+                  <Button 
+                    onClick={() => navigate('/plans')}
+                    className="font-bengali"
+                    style={{
+                      background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
+                      color: 'white'
+                    }}
+                  >
+                    প্ল্যান দেখুন
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/support')}
+                    variant="outline"
+                    className="font-bengali"
+                  >
+                    সাহায্য নিন
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
