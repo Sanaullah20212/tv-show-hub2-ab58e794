@@ -1,11 +1,10 @@
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, Tv, Archive, ArrowRight, Users, Star, Sparkles, Zap, Heart, MessageCircle, Facebook } from 'lucide-react';
+import { Shield, Tv, Archive, ArrowRight, Users, Star, Sparkles, Zap, Heart, MessageCircle, Facebook, Play } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { useState, useEffect } from 'react';
-import logoImage from '@/assets/logo.png';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -187,19 +186,18 @@ const Index = () => {
               <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 mb-4 sm:mb-6 animate-fade-in">
                 <div className="relative group">
                   {/* Outer glow effect */}
-                  <div className="absolute -inset-3 bg-gradient-to-br from-pink-400/40 via-white/30 to-pink-500/40 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500 animate-pulse"></div>
+                  <div className="absolute -inset-4 bg-gradient-to-br from-pink-500/50 via-fuchsia-500/40 to-pink-600/50 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500 animate-pulse"></div>
                   
-                  {/* Glass container */}
-                  <div className="relative p-4 sm:p-5 lg:p-6 bg-white/15 backdrop-blur-md rounded-full shadow-2xl border-2 border-white/25 group-hover:scale-110 group-hover:border-white/40 transition-all duration-500">
-                    {/* Inner glow ring */}
-                    <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/10 to-transparent"></div>
-                    
-                    {/* Logo */}
-                    <img 
-                      src={logoImage} 
-                      alt="BTSPRO24 Logo" 
-                      className="relative h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 drop-shadow-lg"
-                    />
+                  {/* Main circular container with border */}
+                  <div className="relative p-1 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-500 to-pink-600 group-hover:scale-110 transition-all duration-500 shadow-2xl shadow-pink-500/30">
+                    {/* Inner dark circle */}
+                    <div className="p-4 sm:p-5 lg:p-6 bg-slate-900/95 rounded-full flex items-center justify-center">
+                      {/* Play icon */}
+                      <Play 
+                        className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-pink-500 fill-pink-500 drop-shadow-lg ml-1" 
+                        strokeWidth={2.5}
+                      />
+                    </div>
                   </div>
                 </div>
                 
