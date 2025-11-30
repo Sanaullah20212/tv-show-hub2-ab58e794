@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Check, Calendar, Banknote } from 'lucide-react';
+import { Banknote } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -168,143 +168,124 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
   const hasPendingSubscription = currentSubscription && currentSubscription.status === 'pending';
   const currentPlanMonths = currentSubscription?.plan_months;
 
+  // Bengali numbers
+  const bengaliNumbers = ['১', '২', '৩'];
+
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-        {plans.map((plan) => {
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header Section */}
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl sm:text-3xl font-bold font-bengali text-foreground">
+          সাবস্ক্রিপশন প্ল্যান
+        </h2>
+        <p className="text-sm sm:text-base text-muted-foreground font-bengali">
+          আপনার প্রয়োজন অনুযায়ী সেরা প্ল্যান বেছে নিন
+        </p>
+      </div>
+
+      {/* Plans Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+        {plans.map((plan, index) => {
           const isCurrentPlan = hasActiveSubscription && currentPlanMonths === plan.months;
           const isDisabled = hasActiveSubscription || hasPendingSubscription;
+          const isPopular = plan.id === '2-month';
+          const hasDiscount = plan.originalPrice && plan.originalPrice !== plan.price;
 
           return (
-            <Card 
-              key={plan.id} 
-              className={`relative transition-all duration-300 hover:shadow-2xl overflow-hidden border-0 ${
-                isCurrentPlan ? 'ring-2 ring-primary shadow-2xl scale-105' : ''
-              } ${
-                plan.id === '1-month' ? 'bg-gradient-to-br from-slate-100/80 to-slate-50/50 dark:from-slate-900/40 dark:to-slate-800/20' :
-                plan.id === '2-month' ? 'bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20' :
-                'bg-gradient-to-br from-accent/20 to-accent/10 dark:from-accent/30 dark:to-accent/20'
-              }`}
+            <div
+              key={plan.id}
+              className={`relative ${isPopular ? 'md:-mt-2' : ''}`}
             >
-              {plan.id === '2-month' && (
+              {/* Popular Badge */}
+              {isPopular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-20">
-                  <Badge className="bg-primary text-white px-4 py-1.5 rounded-full shadow-xl text-sm font-bold font-bengali">
+                  <Badge className="bg-amber-500 hover:bg-amber-500 text-white px-4 py-1 rounded-full shadow-lg text-xs font-semibold font-bengali border-0">
                     ⭐ জনপ্রিয়
                   </Badge>
                 </div>
               )}
-              
-              {plan.discount && (
-                <div className="absolute top-4 right-4 z-20">
-                  <Badge variant="destructive" className="px-3 py-1 rounded-full shadow-lg text-xs font-bold font-bengali">
-                    {plan.discount}
-                  </Badge>
-                </div>
-              )}
 
-              <CardHeader className="text-center relative z-10 pt-8 sm:pt-10 pb-4 sm:pb-6 px-3 sm:px-6">
-                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-                  {/* Icon Circle */}
-                  <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-lg ${
-                    plan.id === '1-month' ? 'bg-slate-600 dark:bg-slate-500' :
-                    plan.id === '2-month' ? 'bg-primary' :
-                    'bg-accent'
-                  }`}>
-                    <Calendar className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
-                  </div>
-
-                  {/* Plan Duration */}
-                  <CardTitle className={`text-xl sm:text-2xl font-bold font-bengali ${
-                    plan.id === '1-month' ? 'text-slate-700 dark:text-slate-300' :
-                    plan.id === '2-month' ? 'text-primary' :
-                    'text-accent'
-                  }`}>
-                    {plan.name}
-                  </CardTitle>
-
-                  {/* Price */}
-                  <div className="space-y-1">
-                    <div className="flex items-baseline justify-center space-x-1.5">
-                      <span className={`text-4xl sm:text-5xl font-bold font-bengali ${
-                        plan.id === '1-month' ? 'text-destructive' :
-                        plan.id === '2-month' ? 'text-primary' :
-                        'text-accent'
-                      }`}>
-                        {plan.price}
-                      </span>
-                      <span className={`text-lg sm:text-xl font-semibold font-bengali ${
-                        plan.id === '1-month' ? 'text-destructive' :
-                        plan.id === '2-month' ? 'text-primary' :
-                        'text-accent'
-                      }`}>
-                        টাকা
-                      </span>
+              <Card 
+                onClick={() => !isDisabled && handleSubscribeClick(plan.id, plan.months, plan.price)}
+                className={`relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
+                  isCurrentPlan ? 'ring-2 ring-success shadow-xl' : 'hover:shadow-xl'
+                } ${
+                  isPopular 
+                    ? 'bg-gradient-to-b from-primary/15 to-primary/5 border-primary/30' 
+                    : 'bg-card border-border/50'
+                } ${isDisabled ? 'opacity-70 cursor-not-allowed' : ''}`}
+              >
+                <CardContent className="pt-8 pb-6 px-4 sm:px-6">
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    {/* Number Badge */}
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl font-bold ${
+                      isPopular 
+                        ? 'bg-amber-600 text-white' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {bengaliNumbers[index]}
                     </div>
-                    {plan.originalPrice && plan.originalPrice !== plan.price && (
-                      <div className="text-base text-muted-foreground line-through font-bengali">
-                        {plan.originalPrice} টাকা
+
+                    {/* Plan Duration */}
+                    <h3 className={`text-lg sm:text-xl font-bold font-bengali ${
+                      isPopular ? 'text-primary' : 'text-foreground'
+                    }`}>
+                      {plan.months === 1 ? '১ মাস' : plan.months === 2 ? '২ মাস' : '৩ মাস'}
+                    </h3>
+
+                    {/* Price Section */}
+                    <div className="space-y-1">
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className={`text-3xl sm:text-4xl font-bold font-bengali ${
+                          isPopular ? 'text-primary' : 'text-foreground'
+                        }`}>
+                          {plan.price === 200 ? '২০০' : plan.price === 400 ? '৪০০' : '৫০০'}
+                        </span>
+                        <span className={`text-base sm:text-lg font-medium font-bengali ${
+                          isPopular ? 'text-primary' : 'text-foreground'
+                        }`}>
+                          টাকা
+                        </span>
                       </div>
+                      
+                      {/* Original Price (crossed) */}
+                      {hasDiscount && (
+                        <p className="text-sm text-muted-foreground line-through font-bengali">
+                          ৬০০ টাকা
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground font-bengali">
+                      {plan.months === 1 ? 'মাসিক সাবস্ক্রিপশন' : 
+                       plan.months === 2 ? 'দুই মাসের সাবস্ক্রিপশন' : 
+                       'মাসিক সাবস্ক্রিপশন'}
+                    </p>
+
+                    {/* Savings Badge for 3-month */}
+                    {hasDiscount && (
+                      <Badge className="bg-success hover:bg-success text-success-foreground px-4 py-1.5 rounded-md text-xs font-semibold font-bengali border-0">
+                        ১০০ টাকা সাশ্রয়!
+                      </Badge>
                     )}
-                    {plan.discount && (
-                      <div className="text-sm text-red-600 dark:text-red-400 font-semibold font-bengali">
-                        ১০০ টাকা ছাড়
-                      </div>
+
+                    {/* Active/Pending Status */}
+                    {isCurrentPlan && (
+                      <Badge className="bg-success hover:bg-success text-success-foreground px-4 py-1.5 rounded-full text-xs font-semibold font-bengali border-0">
+                        ✨ সক্রিয় প্ল্যান
+                      </Badge>
+                    )}
+                    
+                    {hasPendingSubscription && currentPlanMonths === plan.months && (
+                      <Badge className="bg-warning hover:bg-warning text-warning-foreground px-4 py-1.5 rounded-full text-xs font-semibold font-bengali border-0">
+                        ⏳ অনুমোদনের অপেক্ষায়
+                      </Badge>
                     )}
                   </div>
-
-                  {/* Description */}
-                  <CardDescription className="text-base font-medium font-bengali text-foreground/80">
-                    {plan.description === 'মাসিক সাবস্ক্রিপশন' ? 'মাসিক সাবস্ক্রিপশন' :
-                     plan.description === 'জনপ্রিয় প্ল্যান' ? 'দুই মাসের সাবস্ক্রিপশন' :
-                     'মাসিক সাবস্ক্রিপশন'}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-3 sm:space-y-4 relative z-10 px-3 sm:px-4 pb-4 sm:pb-6">
-                <Button 
-                  onClick={() => handleSubscribeClick(plan.id, plan.months, plan.price)}
-                  disabled={isDisabled}
-                  className={`w-full h-12 sm:h-14 text-sm sm:text-base font-bold font-bengali rounded-lg sm:rounded-xl transition-all duration-300 shadow-lg ${
-                    isCurrentPlan ? 
-                      'bg-success hover:bg-success/90' :
-                    !isDisabled ?
-                      plan.id === '1-month' ? 'bg-purple-500 hover:bg-purple-600 text-white dark:bg-purple-600 dark:hover:bg-purple-700' :
-                      plan.id === '2-month' ? 'bg-primary hover:bg-primary/90 text-white' :
-                      'bg-teal-500 hover:bg-teal-600 text-white dark:bg-teal-600 dark:hover:bg-teal-700' :
-                      'bg-muted/50'
-                  }`}
-                >
-                  {isCurrentPlan ? (
-                    <span className="font-bengali">সক্রিয় প্ল্যান</span>
-                  ) : hasPendingSubscription ? (
-                    <span className="font-bengali">পেন্ডিং অনুমোদন</span>
-                  ) : hasActiveSubscription ? (
-                    <span className="font-bengali">ইতিমধ্যে সাবস্ক্রাইব করা</span>
-                  ) : (
-                    <span className="font-bengali">
-                      {plan.discount ? 'মেগা অফার - ১০০ টাকা ছাড়' : `নিয়ে নিন - ${plan.price} টাকা`}
-                    </span>
-                  )}
-                </Button>
-
-                {isCurrentPlan && (
-                  <div className="text-center mt-4">
-                    <Badge variant="default" className="bg-success text-success-foreground px-6 py-2 rounded-full font-bengali font-semibold">
-                      ✨ সক্রিয় প্ল্যান
-                    </Badge>
-                  </div>
-                )}
-                
-                {hasPendingSubscription && currentPlanMonths === plan.months && (
-                  <div className="text-center mt-4">
-                    <Badge variant="secondary" className="bg-warning text-warning-foreground px-6 py-2 rounded-full font-bengali font-semibold">
-                      ⏳ অনুমোদনের অপেক্ষায়
-                    </Badge>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           );
         })}
       </div>

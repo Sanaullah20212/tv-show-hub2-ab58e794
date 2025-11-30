@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Shield, LogOut, ArrowLeft, History, CreditCard } from 'lucide-react';
+import { LogOut, ArrowLeft, History, CreditCard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import SubscriptionPlans from '@/components/SubscriptionPlans';
@@ -63,60 +62,47 @@ const Plans = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Compact Mobile-Friendly Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <Button 
-                onClick={() => navigate('/dashboard')} 
-                variant="ghost" 
-                size="sm"
-                className="shrink-0"
-              >
-                <ArrowLeft className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">ফিরে যান</span>
-              </Button>
-              <div className="p-2 sm:p-2.5 rounded-lg" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)' }}>
-                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold font-bengali truncate" style={{ color: 'hsl(var(--primary))' }}>
-                  সাবস্ক্রিপশন প্ল্যান
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground font-bengali hidden sm:block">
-                  আপনার প্রয়োজন অনুযায়ী সেরা প্ল্যান বেছে নিন
-                </p>
-              </div>
-            </div>
-            <Button onClick={signOut} variant="outline" size="sm" className="shrink-0 self-end sm:self-auto">
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">লগআউট</span>
+      {/* Minimal Header */}
+      <header className="border-b border-border/50 bg-card/30 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Button 
+              onClick={() => navigate('/dashboard')} 
+              variant="ghost" 
+              size="sm"
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline font-bengali">ফিরে যান</span>
+            </Button>
+            <Button onClick={signOut} variant="ghost" size="sm" className="gap-2">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline font-bengali">লগআউট</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Mobile-Friendly Toggle Buttons */}
-        <div className="flex items-center gap-2 p-1.5 bg-muted/50 rounded-lg w-full sm:w-auto sm:mx-auto">
+      <div className="container mx-auto px-4 py-6 sm:py-8 space-y-6">
+        {/* Tab Buttons - Centered */}
+        <div className="flex items-center justify-center gap-2">
           <Button
-            variant={!showHistory ? "default" : "ghost"}
+            variant={!showHistory ? "default" : "outline"}
             onClick={() => navigate('/plans')}
-            className="font-bengali gap-1.5 flex-1 sm:flex-initial text-sm"
+            className="font-bengali gap-2 px-6"
             size="sm"
           >
             <CreditCard className="h-4 w-4" />
-            <span>প্ল্যান</span>
+            প্ল্যান
           </Button>
           <Button
-            variant={showHistory ? "default" : "ghost"}
+            variant={showHistory ? "default" : "outline"}
             onClick={() => navigate('/plans#history')}
-            className="font-bengali gap-1.5 flex-1 sm:flex-initial text-sm"
+            className="font-bengali gap-2 px-6"
             size="sm"
           >
             <History className="h-4 w-4" />
-            <span>হিস্টরি</span>
+            হিস্টরি
           </Button>
         </div>
 
