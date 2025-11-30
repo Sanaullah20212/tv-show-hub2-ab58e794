@@ -107,7 +107,7 @@ const Index = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-40 bg-gradient-to-r from-primary via-info to-success py-3 shadow-lg">
+      <nav className="sticky top-0 z-40 bg-gradient-to-r from-primary via-secondary to-accent py-3 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center gap-1 sm:gap-3">
             <Button 
@@ -147,7 +147,7 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-info to-success">
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-secondary to-accent">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-white rounded-full blur-3xl animate-pulse delay-700"></div>
