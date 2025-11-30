@@ -9,7 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, CreditCard, Clock, AlertCircle, Plus } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertCircle, Plus, Pause, Play, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +19,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
+// Helper function to set end time to 11:59 PM Bangladesh Time (UTC+6)
+const setEndTimeToBangladeshMidnight = (date: Date): Date => {
+  // Create a new date at the end of the day in Bangladesh time (23:59:59)
+  // Bangladesh is UTC+6, so 23:59 BD time = 17:59 UTC
+  const bdDate = new Date(date);
+  bdDate.setUTCHours(17, 59, 59, 999); // 23:59:59 in BD time
+  return bdDate;
+};
+
+// Helper to format date in Bangladesh timezone
+const formatBDDate = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  return date.toLocaleString('bn-BD', { 
+    timeZone: 'Asia/Dhaka',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
 const AdminSubscriptions = () => {
   const { user, profile, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +48,8 @@ const AdminSubscriptions = () => {
   const [dataLoading, setDataLoading] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState<any>(null);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -116,21 +140,123 @@ const AdminSubscriptions = () => {
         console.error('Error cancelling old subscriptions:', cancelError);
       }
 
-      // Then approve the new subscription
+      // Then approve the new subscription with Bangladesh timezone end date
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + sub.plan_months);
+      const bdEndDate = setEndTimeToBangladeshMidnight(endDate);
 
       const { error } = await supabase
         .from('subscriptions')
-        .update({ status: 'active', end_date: endDate.toISOString() })
+        .update({ status: 'active', end_date: bdEndDate.toISOString() })
         .eq('id', id);
 
       if (error) throw error;
-      toast.success('অনুমোদিত হয়েছে');
+      toast.success('অনুমোদিত হয়েছে - শেষ তারিখ: রাত ১১:৫৯ পর্যন্ত');
       fetchSubscriptions();
     } catch (error) {
       console.error('Error:', error);
       toast.error('ব্যর্থ');
+    }
+  };
+
+  // Pause subscription
+  const handlePause = async (id: string) => {
+    try {
+      const sub = subscriptions.find(s => s.id === id);
+      if (!sub || sub.status !== 'active') return;
+
+      // Calculate remaining days
+      const now = new Date();
+      const endDate = new Date(sub.end_date);
+      const remainingDays = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ 
+          is_paused: true, 
+          paused_at: now.toISOString(),
+          paused_days_remaining: remainingDays
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success(`সাবস্ক্রিপশন পজ করা হয়েছে (${remainingDays} দিন বাকি)`);
+      fetchSubscriptions();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('পজ করতে ব্যর্থ');
+    }
+  };
+
+  // Resume subscription
+  const handleResume = async (id: string) => {
+    try {
+      const sub = subscriptions.find(s => s.id === id);
+      if (!sub || !sub.is_paused) return;
+
+      // Calculate new end date based on remaining days
+      const newEndDate = new Date();
+      newEndDate.setDate(newEndDate.getDate() + (sub.paused_days_remaining || 0));
+      const bdEndDate = setEndTimeToBangladeshMidnight(newEndDate);
+
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ 
+          is_paused: false, 
+          paused_at: null,
+          paused_days_remaining: null,
+          end_date: bdEndDate.toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success('সাবস্ক্রিপশন রিজিউম করা হয়েছে');
+      fetchSubscriptions();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('রিজিউম করতে ব্যর্থ');
+    }
+  };
+
+  // Upgrade subscription
+  const handleUpgrade = async (newPlanId: string) => {
+    if (!selectedSubscription) return;
+
+    const newPlan = predefinedPlans.find(p => p.id === newPlanId);
+    if (!newPlan) return;
+
+    try {
+      // Calculate remaining value from current subscription
+      const now = new Date();
+      const currentEnd = new Date(selectedSubscription.end_date);
+      const remainingDays = Math.max(0, Math.ceil((currentEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+      
+      // Calculate new end date (remaining days + new plan months)
+      const newEndDate = new Date();
+      newEndDate.setMonth(newEndDate.getMonth() + newPlan.months);
+      newEndDate.setDate(newEndDate.getDate() + remainingDays);
+      const bdEndDate = setEndTimeToBangladeshMidnight(newEndDate);
+
+      // Update current subscription
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({ 
+          plan_months: newPlan.months,
+          price_taka: newPlan.price,
+          end_date: bdEndDate.toISOString(),
+          upgraded_from: selectedSubscription.id
+        })
+        .eq('id', selectedSubscription.id);
+
+      if (updateError) throw updateError;
+
+      toast.success(`আপগ্রেড সফল! নতুন প্ল্যান: ${newPlan.months} মাস (+ ${remainingDays} দিন বোনাস)`);
+      setUpgradeDialogOpen(false);
+      setSelectedSubscription(null);
+      fetchSubscriptions();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('আপগ্রেড করতে ব্যর্থ');
     }
   };
 
@@ -244,9 +370,10 @@ const AdminSubscriptions = () => {
 
       if (useCustomDate) {
         subscriptionStartDate = new Date(startDate);
-        subscriptionEndDate = new Date(endDate);
+        subscriptionEndDate = setEndTimeToBangladeshMidnight(new Date(endDate));
       } else {
         subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + plan.months);
+        subscriptionEndDate = setEndTimeToBangladeshMidnight(subscriptionEndDate);
       }
 
       const { error } = await supabase
@@ -523,6 +650,7 @@ const AdminSubscriptions = () => {
                               <TableHead>প্ল্যান</TableHead>
                               <TableHead>শেষ তারিখ</TableHead>
                               <TableHead>স্ট্যাটাস</TableHead>
+                              <TableHead className="text-right">অ্যাকশন</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -530,9 +658,56 @@ const AdminSubscriptions = () => {
                               <TableRow key={s.id}>
                                 <TableCell>{s.profiles?.mobile_number}</TableCell>
                                 <TableCell>{s.plan_months} মাস</TableCell>
-                                <TableCell>{new Date(s.end_date).toLocaleDateString('bn-BD')}</TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="text-green-500 border-green-500">সক্রিয়</Badge>
+                                  <div className="text-sm">
+                                    {formatBDDate(s.end_date)}
+                                    <span className="text-muted-foreground text-xs block">
+                                      (রাত ১১:৫৯ পর্যন্ত)
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  {s.is_paused ? (
+                                    <Badge variant="outline" className="text-orange-500 border-orange-500">
+                                      ⏸️ পজড ({s.paused_days_remaining} দিন)
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-green-500 border-green-500">সক্রিয়</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-1">
+                                    {s.is_paused ? (
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        onClick={() => handleResume(s.id)}
+                                        title="রিজিউম করুন"
+                                      >
+                                        <Play className="h-4 w-4 text-green-600" />
+                                      </Button>
+                                    ) : (
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        onClick={() => handlePause(s.id)}
+                                        title="পজ করুন"
+                                      >
+                                        <Pause className="h-4 w-4 text-orange-600" />
+                                      </Button>
+                                    )}
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      onClick={() => {
+                                        setSelectedSubscription(s);
+                                        setUpgradeDialogOpen(true);
+                                      }}
+                                      title="আপগ্রেড করুন"
+                                    >
+                                      <ArrowUpCircle className="h-4 w-4 text-blue-600" />
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -580,6 +755,56 @@ const AdminSubscriptions = () => {
           </main>
         </div>
       </div>
+
+      {/* Upgrade Dialog */}
+      <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="font-bengali flex items-center gap-2">
+              <ArrowUpCircle className="h-5 w-5 text-blue-500" />
+              প্ল্যান আপগ্রেড করুন
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {selectedSubscription && (
+              <div className="p-4 bg-muted rounded-lg space-y-2">
+                <p className="text-sm font-bengali">
+                  <strong>বর্তমান প্ল্যান:</strong> {selectedSubscription.plan_months} মাস
+                </p>
+                <p className="text-sm font-bengali">
+                  <strong>শেষ তারিখ:</strong> {formatBDDate(selectedSubscription.end_date)}
+                </p>
+                <p className="text-xs text-muted-foreground font-bengali">
+                  💡 আপগ্রেড করলে বাকি দিনগুলো নতুন প্ল্যানে যুক্ত হবে
+                </p>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label className="font-bengali">নতুন প্ল্যান নির্বাচন করুন</Label>
+              <div className="grid gap-2">
+                {predefinedPlans.map((plan) => (
+                  <Button
+                    key={plan.id}
+                    variant={selectedSubscription?.plan_months === plan.months ? "secondary" : "outline"}
+                    className="w-full justify-between font-bengali"
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={selectedSubscription?.plan_months >= plan.months}
+                  >
+                    <span>{plan.name}</span>
+                    {selectedSubscription?.plan_months === plan.months && (
+                      <Badge variant="secondary">বর্তমান</Badge>
+                    )}
+                    {selectedSubscription?.plan_months < plan.months && (
+                      <Badge className="bg-green-500">আপগ্রেড</Badge>
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };

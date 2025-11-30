@@ -504,8 +504,12 @@ export type Database = {
         Row: {
           admin_notes: string | null
           created_at: string
+          downgraded_from: string | null
           end_date: string
           id: string
+          is_paused: boolean | null
+          paused_at: string | null
+          paused_days_remaining: number | null
           payment_last_digits: string | null
           payment_method: string | null
           plan_months: number
@@ -513,13 +517,18 @@ export type Database = {
           start_date: string
           status: Database["public"]["Enums"]["subscription_status"]
           updated_at: string
+          upgraded_from: string | null
           user_id: string
         }
         Insert: {
           admin_notes?: string | null
           created_at?: string
+          downgraded_from?: string | null
           end_date: string
           id?: string
+          is_paused?: boolean | null
+          paused_at?: string | null
+          paused_days_remaining?: number | null
           payment_last_digits?: string | null
           payment_method?: string | null
           plan_months: number
@@ -527,13 +536,18 @@ export type Database = {
           start_date?: string
           status?: Database["public"]["Enums"]["subscription_status"]
           updated_at?: string
+          upgraded_from?: string | null
           user_id: string
         }
         Update: {
           admin_notes?: string | null
           created_at?: string
+          downgraded_from?: string | null
           end_date?: string
           id?: string
+          is_paused?: boolean | null
+          paused_at?: string | null
+          paused_days_remaining?: number | null
           payment_last_digits?: string | null
           payment_method?: string | null
           plan_months?: number
@@ -541,9 +555,25 @@ export type Database = {
           start_date?: string
           status?: Database["public"]["Enums"]["subscription_status"]
           updated_at?: string
+          upgraded_from?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_downgraded_from_fkey"
+            columns: ["downgraded_from"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_upgraded_from_fkey"
+            columns: ["upgraded_from"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {

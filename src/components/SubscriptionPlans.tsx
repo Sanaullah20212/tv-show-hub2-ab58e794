@@ -118,8 +118,11 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
         return;
       }
 
+      // Calculate end date with Bangladesh timezone (11:59 PM BD time)
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + paymentDialog.months);
+      // Set to 11:59 PM Bangladesh time (UTC+6), which is 17:59 UTC
+      endDate.setUTCHours(17, 59, 59, 999);
 
       const { error } = await supabase
         .from('subscriptions')
