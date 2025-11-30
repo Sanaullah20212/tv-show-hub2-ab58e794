@@ -218,6 +218,14 @@ const AdminUsers = () => {
       let calculatedMonths = plan.months;
       let finalPrice = plan.price;
 
+      // Use custom price if provided for any plan
+      if (priceTaka) {
+        const parsedPrice = parsePrice(priceTaka);
+        if (parsedPrice && !Number.isNaN(parsedPrice)) {
+          finalPrice = parsedPrice;
+        }
+      }
+
       if (isCustomPlan || useCustomDate) {
         subscriptionStartDate = new Date(startDate);
         subscriptionEndDate = new Date(endDate);
@@ -227,13 +235,9 @@ const AdminUsers = () => {
                           + (subscriptionEndDate.getMonth() - subscriptionStartDate.getMonth());
         calculatedMonths = Math.max(1, monthsDiff);
         
-        if (isCustomPlan) {
-          const parsedPrice = parsePrice(priceTaka);
-          if (!parsedPrice || Number.isNaN(parsedPrice)) {
-            toast.error('সঠিক টাকার পরিমাণ লিখুন (শুধু সংখ্যা)');
-            return;
-          }
-          finalPrice = parsedPrice;
+        if (isCustomPlan && !priceTaka) {
+          toast.error('সঠিক টাকার পরিমাণ লিখুন');
+          return;
         }
       } else {
         subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + plan.months);
@@ -253,7 +257,7 @@ const AdminUsers = () => {
 
       if (error) throw error;
 
-      toast.success('সাবস্ক্রিপশন সফলভাবে তৈরি হয়েছে');
+      toast.success(`সাবস্ক্রিপশন সফলভাবে তৈরি হয়েছে (${finalPrice} টাকা)`);
       setDialogOpen(false);
       setSelectedPlan('');
       setPaymentMethod('');
@@ -262,6 +266,7 @@ const AdminUsers = () => {
       setUseCustomDate(false);
       setStartDate('');
       setEndDate('');
+      fetchUsers();
     } catch (error) {
       console.error('Error:', error);
       toast.error('সাবস্ক্রিপশন তৈরি করতে ব্যর্থ');
@@ -295,6 +300,14 @@ const AdminUsers = () => {
       let calculatedMonths = plan.months;
       let finalPrice = plan.price;
 
+      // Use custom price if provided for any plan
+      if (priceTaka) {
+        const parsedPrice = parsePrice(priceTaka);
+        if (parsedPrice && !Number.isNaN(parsedPrice)) {
+          finalPrice = parsedPrice;
+        }
+      }
+
       if (isCustomPlan || useCustomDate) {
         subscriptionStartDate = new Date(startDate);
         subscriptionEndDate = new Date(endDate);
@@ -304,13 +317,9 @@ const AdminUsers = () => {
                           + (subscriptionEndDate.getMonth() - subscriptionStartDate.getMonth());
         calculatedMonths = Math.max(1, monthsDiff);
         
-        if (isCustomPlan) {
-          const parsedPrice = parsePrice(priceTaka);
-          if (!parsedPrice || Number.isNaN(parsedPrice)) {
-            toast.error('সঠিক টাকার পরিমাণ লিখুন (শুধু সংখ্যা)');
-            return;
-          }
-          finalPrice = parsedPrice;
+        if (isCustomPlan && !priceTaka) {
+          toast.error('সঠিক টাকার পরিমাণ লিখুন');
+          return;
         }
       } else {
         subscriptionEndDate.setMonth(subscriptionEndDate.getMonth() + plan.months);
@@ -332,14 +341,16 @@ const AdminUsers = () => {
 
       if (error) throw error;
 
-      toast.success(`${selectedUsers.size}টি সাবস্ক্রিপশন সফলভাবে তৈরি হয়েছে`);
+      toast.success(`${selectedUsers.size}টি সাবস্ক্রিপশন সফলভাবে তৈরি হয়েছে (${finalPrice} টাকা)`);
       setBulkDialogOpen(false);
       setSelectedUsers(new Set());
       setSelectedPlan('');
       setPaymentMethod('');
+      setPriceTaka('');
       setUseCustomDate(false);
       setStartDate('');
       setEndDate('');
+      fetchUsers();
     } catch (error) {
       console.error('Error:', error);
       toast.error('সাবস্ক্রিপশন তৈরি করতে ব্যর্থ');
@@ -715,24 +726,31 @@ const AdminUsers = () => {
                                 <SelectTrigger>
                                   <SelectValue placeholder="পেমেন্ট মেথড নির্বাচন করুন" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="bkash">বিকাশ (bKash)</SelectItem>
-                                  <SelectItem value="nagad">নগদ (Nagad)</SelectItem>
-                                  <SelectItem value="others">অন্যান্য (Others)</SelectItem>
+                              <SelectContent>
+                                  <SelectItem value="bkash">📱 বিকাশ (bKash)</SelectItem>
+                                  <SelectItem value="nagad">💳 নগদ (Nagad)</SelectItem>
+                                  <SelectItem value="rocket">🚀 রকেট (Rocket)</SelectItem>
+                                  <SelectItem value="upi">🇮🇳 UPI (India)</SelectItem>
+                                  <SelectItem value="bank">🏦 ব্যাংক ট্রান্সফার</SelectItem>
+                                  <SelectItem value="cash">💵 ক্যাশ (Cash)</SelectItem>
+                                  <SelectItem value="free">🎁 ফ্রি (Promo)</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
-                            {selectedPlan === 'custom' && (
-                              <div className="space-y-2">
-                                <Label>মূল্য (টাকা)</Label>
-                                <Input 
-                                  type="number"
-                                  placeholder="মূল্য লিখুন" 
-                                  value={priceTaka}
-                                  onChange={(e) => setPriceTaka(e.target.value)}
-                                />
-                              </div>
-                            )}
+                            <div className="space-y-2">
+                              <Label>প্রদত্ত টাকার পরিমাণ (ঐচ্ছিক)</Label>
+                              <Input 
+                                type="number"
+                                placeholder={selectedPlan && selectedPlan !== 'custom' ? `ডিফল্ট: ${predefinedPlans.find(p => p.id === selectedPlan)?.price || 0} টাকা` : 'মূল্য লিখুন'}
+                                value={priceTaka}
+                                onChange={(e) => setPriceTaka(e.target.value)}
+                              />
+                              {selectedPlan !== 'custom' && (
+                                <p className="text-xs text-muted-foreground">
+                                  কাস্টম টাকা না দিলে প্ল্যানের ডিফল্ট মূল্য ব্যবহার হবে
+                                </p>
+                              )}
+                            </div>
                             <div className="flex items-center space-x-2">
                               <Checkbox 
                                 id="bulk-custom-date" 
@@ -952,23 +970,30 @@ const AdminUsers = () => {
                                             <SelectValue placeholder="পেমেন্ট মেথড নির্বাচন করুন" />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            <SelectItem value="bkash">বিকাশ (bKash)</SelectItem>
-                                            <SelectItem value="nagad">নগদ (Nagad)</SelectItem>
-                                            <SelectItem value="others">অন্যান্য (Others)</SelectItem>
+                                            <SelectItem value="bkash">📱 বিকাশ (bKash)</SelectItem>
+                                            <SelectItem value="nagad">💳 নগদ (Nagad)</SelectItem>
+                                            <SelectItem value="rocket">🚀 রকেট (Rocket)</SelectItem>
+                                            <SelectItem value="upi">🇮🇳 UPI (India)</SelectItem>
+                                            <SelectItem value="bank">🏦 ব্যাংক ট্রান্সফার</SelectItem>
+                                            <SelectItem value="cash">💵 ক্যাশ (Cash)</SelectItem>
+                                            <SelectItem value="free">🎁 ফ্রি (Promo)</SelectItem>
                                           </SelectContent>
                                         </Select>
                                       </div>
-                                      {selectedPlan === 'custom' && (
-                                        <div className="space-y-2">
-                                          <Label>মূল্য (টাকা)</Label>
-                                          <Input 
-                                            type="number"
-                                            placeholder="মূল্য লিখুন" 
-                                            value={priceTaka}
-                                            onChange={(e) => setPriceTaka(e.target.value)}
-                                          />
-                                        </div>
-                                      )}
+                                      <div className="space-y-2">
+                                        <Label>প্রদত্ত টাকার পরিমাণ (ঐচ্ছিক)</Label>
+                                        <Input 
+                                          type="number"
+                                          placeholder={selectedPlan && selectedPlan !== 'custom' ? `ডিফল্ট: ${predefinedPlans.find(p => p.id === selectedPlan)?.price || 0} টাকা` : 'মূল্য লিখুন'}
+                                          value={priceTaka}
+                                          onChange={(e) => setPriceTaka(e.target.value)}
+                                        />
+                                        {selectedPlan !== 'custom' && (
+                                          <p className="text-xs text-muted-foreground">
+                                            কাস্টম টাকা না দিলে প্ল্যানের ডিফল্ট মূল্য ব্যবহার হবে
+                                          </p>
+                                        )}
+                                      </div>
                                       <div className="flex items-center space-x-2">
                                         <Checkbox 
                                           id="custom-date" 
