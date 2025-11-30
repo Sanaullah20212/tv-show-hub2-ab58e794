@@ -6,7 +6,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Users, CreditCard, Clock, AlertCircle, TrendingUp, CheckCircle, Activity } from 'lucide-react';
+import { Users, CreditCard, Clock, AlertCircle, CheckCircle, Activity, ArrowRight, BarChart3, Settings, Key, HardDrive } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSubscriptionNotifications } from '@/hooks/useSubscriptionNotifications';
@@ -270,13 +270,15 @@ const AdminDashboard = () => {
   const statCards = [
     {
       title: "মোট ব্যবহারকারী",
+      description: "সব রেজিস্টার্ড ইউজার",
       value: stats.totalUsers,
       icon: Users,
       colorClass: "stat-blue",
       link: "/admin/users"
     },
     {
-      title: "সক্রিয় ব্যবহারকারী",
+      title: "অনলাইন এখন",
+      description: "১৫ মিনিটে সক্রিয়",
       value: activeUsersCount,
       icon: Activity,
       colorClass: "stat-green",
@@ -284,20 +286,24 @@ const AdminDashboard = () => {
     },
     {
       title: "সক্রিয় সাবস্ক্রিপশন",
+      description: "চলমান প্ল্যান",
       value: stats.activeSubscriptions,
       icon: CreditCard,
       colorClass: "stat-purple",
       link: "/admin/subscriptions"
     },
     {
-      title: "পেন্ডিং অনুমোদন",
+      title: "অনুমোদন বাকি",
+      description: "দ্রুত অনুমোদন দিন",
       value: stats.pendingApprovals,
       icon: Clock,
       colorClass: "stat-orange",
-      alert: stats.pendingApprovals > 0
+      alert: stats.pendingApprovals > 0,
+      link: "/admin/subscriptions"
     },
     {
       title: "শীঘ্রই মেয়াদ শেষ",
+      description: "৭ দিনের মধ্যে",
       value: stats.expiringSoon,
       icon: AlertCircle,
       colorClass: "stat-red",
@@ -311,12 +317,12 @@ const AdminDashboard = () => {
         <AdminSidebar onSignOut={handleSignOut} />
         
         <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b bg-gradient-to-r from-card/80 via-card/50 to-card/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-6">
-            <div className="flex items-center gap-4">
+          <header className="h-16 border-b bg-card/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-4 sm:px-6">
+            <div className="flex items-center gap-3">
               <SidebarTrigger />
               <div>
-                <h1 className="text-2xl font-bold font-bengali bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">ড্যাশবোর্ড ওভারভিউ</h1>
-                <p className="text-xs text-muted-foreground font-bengali">স্বাগতম, অ্যাডমিন</p>
+                <h1 className="text-lg sm:text-xl font-bold font-bengali text-foreground">ড্যাশবোর্ড</h1>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-bengali">সব কিছুর সংক্ষিপ্ত বিবরণ</p>
               </div>
             </div>
             <ThemeToggle />
@@ -338,60 +344,42 @@ const AdminDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {statCards.map((stat, index) => (
                     <Card 
                       key={stat.title} 
-                      className={`animate-fade-in hover-scale cursor-pointer transition-all duration-300 overflow-hidden group relative
-                        ${stat.alert ? 'ring-2 ring-[hsl(var(--stat-orange))]/30' : ''} 
-                        ${stat.isLive ? 'ring-2 ring-[hsl(var(--stat-green))]/30' : ''}
-                        hover:shadow-lg hover:shadow-primary/10`}
-                      style={{ 
-                        animationDelay: `${index * 0.1}s`,
-                        background: `linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--${stat.colorClass})/0.05) 100%)`
-                      }}
+                      className={`animate-fade-in cursor-pointer transition-all duration-300 overflow-hidden group relative hover:shadow-md
+                        ${stat.alert ? 'border-[hsl(var(--stat-orange))]/50' : ''} 
+                        ${stat.isLive ? 'border-[hsl(var(--stat-green))]/50' : ''}`}
+                      style={{ animationDelay: `${index * 0.05}s` }}
                       onClick={() => stat.link && navigate(stat.link)}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-transparent to-[hsl(var(--${stat.colorClass})/0.1)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                        <CardTitle className="text-sm font-medium font-bengali text-muted-foreground group-hover:text-foreground transition-colors">
-                          {stat.title}
-                        </CardTitle>
-                        <div 
-                          className="p-2.5 rounded-xl relative group-hover:scale-110 transition-transform"
-                          style={{ 
-                            backgroundColor: `hsl(var(--${stat.colorClass})/0.15)`,
-                            boxShadow: `0 0 20px hsl(var(--${stat.colorClass})/0.2)`
-                          }}
-                        >
-                          <stat.icon 
-                            className="h-5 w-5" 
-                            style={{ color: `hsl(var(--${stat.colorClass}))` }}
-                          />
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div 
+                            className="p-2 rounded-lg"
+                            style={{ backgroundColor: `hsl(var(--${stat.colorClass})/0.15)` }}
+                          >
+                            <stat.icon 
+                              className="h-4 w-4" 
+                              style={{ color: `hsl(var(--${stat.colorClass}))` }}
+                            />
+                          </div>
                           {stat.isLive && (
-                            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: `hsl(var(--${stat.colorClass}))` }} />
-                              <span className="relative inline-flex rounded-full h-3 w-3" style={{ backgroundColor: `hsl(var(--${stat.colorClass}))` }} />
+                            <span className="flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full opacity-75" style={{ backgroundColor: `hsl(var(--${stat.colorClass}))` }} />
+                              <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: `hsl(var(--${stat.colorClass}))` }} />
                             </span>
                           )}
+                          {stat.alert && (
+                            <AlertCircle className="h-4 w-4" style={{ color: `hsl(var(--${stat.colorClass}))` }} />
+                          )}
                         </div>
-                      </CardHeader>
-                      <CardContent className="relative z-10">
-                        <div className="text-3xl font-bold mb-1" style={{ color: `hsl(var(--${stat.colorClass}))` }}>
+                        <div className="text-2xl font-bold mb-0.5" style={{ color: `hsl(var(--${stat.colorClass}))` }}>
                           {stat.value}
                         </div>
-                        {stat.alert && (
-                          <p className="text-xs mt-1 font-bengali flex items-center gap-1.5" style={{ color: `hsl(var(--${stat.colorClass}))` }}>
-                            <AlertCircle className="h-3 w-3" />
-                            দ্রুত পদক্ষেপ প্রয়োজন
-                          </p>
-                        )}
-                        {stat.isLive && (
-                          <p className="text-xs mt-1 font-bengali flex items-center gap-1.5" style={{ color: `hsl(var(--${stat.colorClass}))` }}>
-                            <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: `hsl(var(--${stat.colorClass}))` }} />
-                            লাইভ ডেটা
-                          </p>
-                        )}
+                        <p className="text-xs font-medium font-bengali text-foreground">{stat.title}</p>
+                        <p className="text-[10px] font-bengali text-muted-foreground">{stat.description}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -490,52 +478,72 @@ const AdminDashboard = () => {
               <Card className="animate-fade-in hover:shadow-md transition-shadow" style={{ animationDelay: "0.7s" }}>
                 <CardHeader className="bg-gradient-to-br from-primary/5 to-transparent">
                   <CardTitle className="font-bengali flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
+                    <ArrowRight className="h-5 w-5 text-primary" />
                     দ্রুত লিঙ্ক
                   </CardTitle>
                   <CardDescription className="font-bengali">সাধারণ কাজের জন্য দ্রুত অ্যাক্সেস</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
                     <Button 
                       variant="outline" 
-                      className="h-auto py-6 flex flex-col gap-3 hover:border-primary/50 hover:bg-primary/5 transition-all group" 
+                      className="h-auto py-4 flex flex-col gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all group" 
                       onClick={() => navigate('/admin/analytics')}
                     >
-                      <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                        <TrendingUp className="h-6 w-6 text-primary" />
+                      <div className="p-2.5 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                        <BarChart3 className="h-5 w-5 text-primary" />
                       </div>
-                      <span className="font-bengali font-medium">অ্যানালিটিক্স</span>
+                      <span className="font-bengali text-sm">অ্যানালিটিক্স</span>
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="h-auto py-6 flex flex-col gap-3 hover:border-[hsl(var(--stat-blue))]/50 hover:bg-[hsl(var(--stat-blue))]/5 transition-all group" 
+                      className="h-auto py-4 flex flex-col gap-2 hover:border-[hsl(var(--stat-blue))]/50 hover:bg-[hsl(var(--stat-blue))]/5 transition-all group" 
                       onClick={() => navigate('/admin/users')}
                     >
-                      <div className="p-3 rounded-xl group-hover:bg-[hsl(var(--stat-blue))]/20 transition-colors" style={{ backgroundColor: 'hsl(var(--stat-blue)/0.1)' }}>
-                        <Users className="h-6 w-6" style={{ color: 'hsl(var(--stat-blue))' }} />
+                      <div className="p-2.5 rounded-xl group-hover:bg-[hsl(var(--stat-blue))]/20 transition-colors" style={{ backgroundColor: 'hsl(var(--stat-blue)/0.1)' }}>
+                        <Users className="h-5 w-5" style={{ color: 'hsl(var(--stat-blue))' }} />
                       </div>
-                      <span className="font-bengali font-medium">ব্যবহারকারী</span>
+                      <span className="font-bengali text-sm">ব্যবহারকারী</span>
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="h-auto py-6 flex flex-col gap-3 hover:border-[hsl(var(--stat-purple))]/50 hover:bg-[hsl(var(--stat-purple))]/5 transition-all group" 
+                      className="h-auto py-4 flex flex-col gap-2 hover:border-[hsl(var(--stat-purple))]/50 hover:bg-[hsl(var(--stat-purple))]/5 transition-all group" 
                       onClick={() => navigate('/admin/subscriptions')}
                     >
-                      <div className="p-3 rounded-xl group-hover:bg-[hsl(var(--stat-purple))]/20 transition-colors" style={{ backgroundColor: 'hsl(var(--stat-purple)/0.1)' }}>
-                        <CreditCard className="h-6 w-6" style={{ color: 'hsl(var(--stat-purple))' }} />
+                      <div className="p-2.5 rounded-xl group-hover:bg-[hsl(var(--stat-purple))]/20 transition-colors" style={{ backgroundColor: 'hsl(var(--stat-purple)/0.1)' }}>
+                        <CreditCard className="h-5 w-5" style={{ color: 'hsl(var(--stat-purple))' }} />
                       </div>
-                      <span className="font-bengali font-medium">সাবস্ক্রিপশন</span>
+                      <span className="font-bengali text-sm">সাবস্ক্রিপশন</span>
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="h-auto py-6 flex flex-col gap-3 hover:border-accent/50 hover:bg-accent/5 transition-all group" 
+                      className="h-auto py-4 flex flex-col gap-2 hover:border-[hsl(var(--stat-orange))]/50 hover:bg-[hsl(var(--stat-orange))]/5 transition-all group" 
+                      onClick={() => navigate('/admin/passwords')}
+                    >
+                      <div className="p-2.5 rounded-xl group-hover:bg-[hsl(var(--stat-orange))]/20 transition-colors" style={{ backgroundColor: 'hsl(var(--stat-orange)/0.1)' }}>
+                        <Key className="h-5 w-5" style={{ color: 'hsl(var(--stat-orange))' }} />
+                      </div>
+                      <span className="font-bengali text-sm">ZIP পাসওয়ার্ড</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="h-auto py-4 flex flex-col gap-2 hover:border-info/50 hover:bg-info/5 transition-all group" 
+                      onClick={() => navigate('/admin/drive-check')}
+                    >
+                      <div className="p-2.5 rounded-xl bg-info/10 group-hover:bg-info/20 transition-colors">
+                        <HardDrive className="h-5 w-5 text-info" />
+                      </div>
+                      <span className="font-bengali text-sm">ড্রাইভ চেক</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="h-auto py-4 flex flex-col gap-2 hover:border-muted-foreground/50 hover:bg-muted/50 transition-all group" 
                       onClick={() => navigate('/admin/settings')}
                     >
-                      <div className="p-3 rounded-xl bg-accent/10 group-hover:bg-accent/20 transition-colors">
-                        <AlertCircle className="h-6 w-6 text-accent-foreground" />
+                      <div className="p-2.5 rounded-xl bg-muted group-hover:bg-muted/80 transition-colors">
+                        <Settings className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <span className="font-bengali font-medium">সেটিংস</span>
+                      <span className="font-bengali text-sm">সেটিংস</span>
                     </Button>
                   </div>
                 </CardContent>
