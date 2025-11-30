@@ -193,10 +193,16 @@ const Index = () => {
                     {/* Glass shine effect */}
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/30 via-transparent to-transparent"></div>
                     
-                    {/* Play icon - pink with glow */}
+                    {/* Glassy Play icon */}
                     <div className="relative">
+                      {/* Icon glow behind */}
                       <Play 
-                        className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-pink-500 fill-pink-500 drop-shadow-[0_0_15px_rgba(236,72,153,0.6)] ml-0.5" 
+                        className="absolute inset-0 h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-white/50 fill-white/30 blur-sm ml-0.5" 
+                        strokeWidth={2}
+                      />
+                      {/* Main icon - glassy white */}
+                      <Play 
+                        className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-white/90 fill-white/40 drop-shadow-lg ml-0.5" 
                         strokeWidth={2}
                       />
                     </div>
