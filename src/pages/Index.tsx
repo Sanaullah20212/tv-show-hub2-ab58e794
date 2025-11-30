@@ -400,7 +400,8 @@ const Index = () => {
                     '• সুরক্ষিত জিপ ফাইল অ্যাক্সেস',
                     '• পাসওয়ার্ড ম্যানেজমেন্ট',
                     '• ব্যবসায়িক ডকুমেন্ট',
-                    '• মেয়াদ ভিত্তিক অ্যাক্সেস'
+                    '• মেয়াদ ভিত্তিক অ্যাক্সেস',
+                    '• Medium/Low কোয়ালিটি বাটন ফোনে সাপোর্ট'
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center justify-center space-x-2 text-muted-foreground">
                       <div className="w-2 h-2 bg-tier-business rounded-full"></div>
