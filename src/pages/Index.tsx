@@ -5,6 +5,7 @@ import { Shield, Tv, Archive, ArrowRight, Users, Star, Sparkles, Zap, Heart, Mes
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { useState, useEffect } from 'react';
+import logoImage from '@/assets/logo.png';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -186,8 +187,12 @@ const Index = () => {
               <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 mb-4 sm:mb-6 animate-fade-in">
                 <div className="relative group">
                   <div className="absolute inset-0 bg-white/30 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
-                  <div className="relative p-3 sm:p-4 lg:p-5 bg-white/20 rounded-full backdrop-blur-sm shadow-2xl border-2 border-white/30 group-hover:scale-110 transition-transform duration-500">
-                    <Shield className="h-10 w-10 sm:h-14 sm:w-14 lg:h-16 lg:w-16 text-white drop-shadow-2xl" />
+                  <div className="relative group-hover:scale-110 transition-transform duration-500">
+                    <img 
+                      src={logoImage} 
+                      alt="BTSPRO24 Logo" 
+                      className="h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 drop-shadow-2xl"
+                    />
                   </div>
                 </div>
                 
