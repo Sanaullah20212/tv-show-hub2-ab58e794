@@ -317,34 +317,34 @@ const AdminDashboard = () => {
         <AdminSidebar onSignOut={handleSignOut} />
         
         <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b bg-card/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-4 sm:px-6">
-            <div className="flex items-center gap-3">
+          <header className="h-14 sm:h-16 border-b bg-card/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-3 sm:px-4 lg:px-6">
+            <div className="flex items-center gap-2 sm:gap-3">
               <SidebarTrigger />
               <div>
-                <h1 className="text-lg sm:text-xl font-bold font-bengali text-foreground">ড্যাশবোর্ড</h1>
-                <p className="text-[10px] sm:text-xs text-muted-foreground font-bengali">সব কিছুর সংক্ষিপ্ত বিবরণ</p>
+                <h1 className="text-base sm:text-lg md:text-xl font-bold font-bengali text-foreground">ড্যাশবোর্ড</h1>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-bengali hidden sm:block">সব কিছুর সংক্ষিপ্ত বিবরণ</p>
               </div>
             </div>
             <ThemeToggle />
           </header>
 
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-gradient-to-br from-background via-background to-muted/20">
-            <div className="space-y-6 max-w-7xl mx-auto">
+          <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-auto bg-gradient-to-br from-background via-background to-muted/20">
+            <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
               {dataLoading ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  {[1, 2, 3, 4].map((i) => (
+                <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <Card key={i} className="animate-fade-in">
-                      <CardHeader>
-                        <Skeleton className="h-4 w-32" />
+                      <CardHeader className="p-3 sm:p-4">
+                        <Skeleton className="h-4 w-20 sm:w-32" />
                       </CardHeader>
-                      <CardContent>
-                        <Skeleton className="h-10 w-24" />
+                      <CardContent className="p-3 sm:p-4 pt-0">
+                        <Skeleton className="h-8 sm:h-10 w-16 sm:w-24" />
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               ) : (
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                <div className="grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {statCards.map((stat, index) => (
                     <Card 
                       key={stat.title} 
@@ -354,14 +354,14 @@ const AdminDashboard = () => {
                       style={{ animationDelay: `${index * 0.05}s` }}
                       onClick={() => stat.link && navigate(stat.link)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-start justify-between mb-2 sm:mb-3">
                           <div 
-                            className="p-2 rounded-lg"
+                            className="p-1.5 sm:p-2 rounded-lg"
                             style={{ backgroundColor: `hsl(var(--${stat.colorClass})/0.15)` }}
                           >
                             <stat.icon 
-                              className="h-4 w-4" 
+                              className="h-3 w-3 sm:h-4 sm:w-4" 
                               style={{ color: `hsl(var(--${stat.colorClass}))` }}
                             />
                           </div>
@@ -372,14 +372,14 @@ const AdminDashboard = () => {
                             </span>
                           )}
                           {stat.alert && (
-                            <AlertCircle className="h-4 w-4" style={{ color: `hsl(var(--${stat.colorClass}))` }} />
+                            <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" style={{ color: `hsl(var(--${stat.colorClass}))` }} />
                           )}
                         </div>
-                        <div className="text-2xl font-bold mb-0.5" style={{ color: `hsl(var(--${stat.colorClass}))` }}>
+                        <div className="text-xl sm:text-2xl font-bold mb-0.5" style={{ color: `hsl(var(--${stat.colorClass}))` }}>
                           {stat.value}
                         </div>
-                        <p className="text-xs font-medium font-bengali text-foreground">{stat.title}</p>
-                        <p className="text-[10px] font-bengali text-muted-foreground">{stat.description}</p>
+                        <p className="text-[10px] sm:text-xs font-medium font-bengali text-foreground leading-tight">{stat.title}</p>
+                        <p className="text-[9px] sm:text-[10px] font-bengali text-muted-foreground">{stat.description}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -387,7 +387,7 @@ const AdminDashboard = () => {
               )}
 
               {/* Realtime Activity and Security Alerts */}
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
                 <div className="animate-fade-in" style={{ animationDelay: "0.3s" }}>
                   <LiveActivityFeed activities={liveActivities} />
                 </div>
@@ -396,7 +396,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
                 <Card className="animate-fade-in hover:shadow-md transition-shadow" style={{ animationDelay: "0.5s" }}>
                   <CardHeader className="bg-gradient-to-br from-[hsl(var(--stat-blue)/0.05)] to-transparent">
                     <CardTitle className="font-bengali flex items-center gap-2">
