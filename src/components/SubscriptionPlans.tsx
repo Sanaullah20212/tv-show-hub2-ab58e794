@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,10 +6,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Banknote } from 'lucide-react';
+import { Banknote, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+
+interface PaymentMethod {
+  id: string;
+  method_key: string;
+  display_name: string;
+  display_name_bangla: string;
+  account_number: string | null;
+  instructions: string | null;
+  instructions_bangla: string | null;
+  is_active: boolean;
+}
 
 interface SubscriptionPlansProps {
   currentSubscription: any;
@@ -28,8 +39,35 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState<PaymentDialogState>({ isOpen: false });
-  const [paymentMethod, setPaymentMethod] = useState<'bkash' | 'nagad' | 'rocket' | 'upi' | 'bank'>('bkash');
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [lastDigits, setLastDigits] = useState('');
+  const [loadingMethods, setLoadingMethods] = useState(true);
+
+  useEffect(() => {
+    fetchPaymentMethods();
+  }, []);
+
+  const fetchPaymentMethods = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true});
+
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setPaymentMethods(data);
+        setPaymentMethod(data[0].method_key); // Set first as default
+      }
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+    } finally {
+      setLoadingMethods(false);
+    }
+  };
 
   const plans = [
     {
@@ -171,6 +209,9 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
   // Bengali numbers
   const bengaliNumbers = ['১', '২', '৩'];
 
+  // Get current selected payment method details
+  const currentPaymentMethodInfo = paymentMethods.find(m => m.method_key === paymentMethod);
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header Section */}
@@ -294,168 +335,172 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
       <Dialog open={paymentDialog.isOpen} onOpenChange={(open) => !open && setPaymentDialog({ isOpen: false })}>
         <DialogContent className="sm:max-w-xl card-gradient max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl flex items-center space-x-2 font-bengali">
+            <DialogTitle className="text-base sm:text-xl flex items-center space-x-2 font-bengali">
               <div className="p-2 rounded-lg gradient-primary">
-                <Banknote className="h-5 w-5 text-white" />
+                <Banknote className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <span>💳 পেমেন্ট তথ্য</span>
             </DialogTitle>
-            <DialogDescription className="text-base font-bengali">
+            <DialogDescription className="text-sm sm:text-base font-bengali">
               পেমেন্ট সম্পূর্ণ করতে নিচের নির্দেশনা অনুসরণ করুন
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            {/* Payment Instructions - Different for UPI vs Bangladesh methods */}
-            {paymentMethod === 'upi' ? (
-              <div className="p-4 bg-gradient-to-br from-orange-500/90 to-orange-600/90 rounded-xl border border-orange-400/30">
-                <h3 className="font-semibold text-white text-lg mb-3 flex items-center space-x-2">
-                  <span>🇮🇳</span>
-                  <span>UPI Payment Instructions:</span>
-                </h3>
-                <div className="space-y-3 text-white/90 text-sm">
-                  <p>1. Send payment to our UPI ID:</p>
-                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
-                    <span className="font-bold text-xl text-green-300">example@upi</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        navigator.clipboard.writeText('example@upi');
-                        toast({ title: "Copied!", description: "UPI ID copied to clipboard" });
-                      }}
-                      className="h-8 px-3 bg-white/20 text-white border-white/30 hover:bg-white/30"
-                    >
-                      📋 Copy
-                    </Button>
-                  </div>
-                  <div className="p-3 bg-white/10 rounded-lg">
-                    <p className="text-yellow-200 font-semibold">
-                      💰 Amount: ₹{paymentDialog.price ? Math.round(paymentDialog.price * 1.2) : 0} INR
-                    </p>
-                    <p className="text-xs text-white/70 mt-1">(Approx. conversion from BDT)</p>
-                  </div>
-                  <p>2. After payment, enter the last 4 digits of your UPI transaction ID</p>
-                  <div className="p-3 bg-green-500/20 rounded-lg border border-green-300/30">
-                    <p className="text-green-100 text-sm">
-                      <strong>✅ Supported Apps:</strong> Google Pay, PhonePe, Paytm, BHIM, Amazon Pay
-                    </p>
-                  </div>
-                </div>
+            {loadingMethods ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="p-4 gradient-secondary rounded-xl border border-primary/20">
-                <h3 className="font-semibold text-white text-lg mb-3 flex items-center space-x-2 font-bengali">
-                  <span>📋</span>
-                  <span>পেমেন্ট নির্দেশনা:</span>
-                </h3>
-                <div className="space-y-3 text-white/90 text-sm font-bengali">
-                  <p>১. নিচের নম্বরে <strong className="text-yellow-300">সেন্ড মানি</strong> অথবা <strong className="text-yellow-300">ক্যাশ ইন</strong> করুন:</p>
-                  <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
-                    <span className="font-bold text-xl text-green-300">📱 01637792810</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        navigator.clipboard.writeText('01637792810');
-                        toast({ title: "কপি হয়েছে!", description: "নম্বর কপি করা হয়েছে" });
-                      }}
-                      className="h-8 px-3 bg-white/20 text-white border-white/30 hover:bg-white/30"
-                    >
-                      📋 কপি
-                    </Button>
-                  </div>
-                  <p>২. টাকা পাঠানোর পর শেষ ৪ সংখ্যা নিচে লিখুন</p>
-                  <div className="p-3 bg-orange-500/20 rounded-lg border border-orange-300/30">
-                    <p className="text-orange-100 text-sm">
-                      <strong>⚠️ দ্রষ্টব্য:</strong> পেমেন্ট <strong className="text-yellow-300">পারসোনাল নম্বর</strong> হিসেবে করুন (এজেন্ট নয়)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+              <>
+                {/* Dynamic Payment Instructions */}
+                {currentPaymentMethodInfo && (
+                  <div 
+                    className={`p-3 sm:p-4 rounded-xl border ${
+                      currentPaymentMethodInfo.method_key === 'upi' 
+                        ? 'bg-gradient-to-br from-orange-500/90 to-orange-600/90 border-orange-400/30'
+                        : 'gradient-secondary border-primary/20'
+                    }`}
+                  >
+                    <h3 className={`font-semibold text-white text-sm sm:text-base md:text-lg mb-2 sm:mb-3 flex items-center space-x-2 ${
+                      currentPaymentMethodInfo.method_key === 'upi' ? '' : 'font-bengali'
+                    }`}>
+                      <span>📋</span>
+                      <span>
+                        {currentPaymentMethodInfo.method_key === 'upi' 
+                          ? 'Payment Instructions:' 
+                          : 'পেমেন্ট নির্দেশনা:'}
+                      </span>
+                    </h3>
+                    
+                    <div className={`space-y-2 sm:space-y-3 text-white/90 text-xs sm:text-sm ${
+                      currentPaymentMethodInfo.method_key === 'upi' ? '' : 'font-bengali'
+                    }`}>
+                      <p>
+                        {currentPaymentMethodInfo.method_key === 'upi' 
+                          ? currentPaymentMethodInfo.instructions 
+                          : currentPaymentMethodInfo.instructions_bangla}
+                      </p>
+                      
+                      {currentPaymentMethodInfo.account_number && (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-2 sm:p-3 bg-white/10 rounded-lg border border-white/20">
+                          <span className="font-bold text-base sm:text-lg md:text-xl text-green-300 break-all">
+                            {currentPaymentMethodInfo.method_key === 'upi' 
+                              ? currentPaymentMethodInfo.account_number 
+                              : `📱 ${currentPaymentMethodInfo.account_number}`}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(currentPaymentMethodInfo.account_number || '');
+                              toast({ 
+                                title: currentPaymentMethodInfo.method_key === 'upi' ? "Copied!" : "কপি হয়েছে!", 
+                                description: currentPaymentMethodInfo.method_key === 'upi' ? "UPI ID copied" : "নম্বর কপি করা হয়েছে" 
+                              });
+                            }}
+                            className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm bg-white/20 text-white border-white/30 hover:bg-white/30 whitespace-nowrap"
+                          >
+                            📋 {currentPaymentMethodInfo.method_key === 'upi' ? 'Copy' : 'কপি'}
+                          </Button>
+                        </div>
+                      )}
 
-            <div className="space-y-4">
-              <div>
-                <Label className="text-base font-semibold mb-2 block font-bengali">💰 পেমেন্ট মেথড</Label>
-                <RadioGroup value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)} className="space-y-2">
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <RadioGroupItem value="bkash" id="bkash" />
-                    <Label htmlFor="bkash" className="text-base font-medium cursor-pointer flex-1 font-bengali">
-                      📱 বিকাশ (bKash)
-                    </Label>
+                      {currentPaymentMethodInfo.method_key === 'upi' && (
+                        <>
+                          <div className="p-2 sm:p-3 bg-white/10 rounded-lg">
+                            <p className="text-yellow-200 font-semibold text-xs sm:text-sm">
+                              💰 Amount: ₹{paymentDialog.price ? Math.round(paymentDialog.price * 1.2) : 0} INR
+                            </p>
+                            <p className="text-xs text-white/70 mt-1">(Approx. conversion from BDT)</p>
+                          </div>
+                          <p className="text-xs sm:text-sm">2. After payment, enter the last 4 digits of your UPI transaction ID</p>
+                          <div className="p-2 sm:p-3 bg-green-500/20 rounded-lg border border-green-300/30">
+                            <p className="text-green-100 text-xs sm:text-sm">
+                              <strong>✅ Supported Apps:</strong> Google Pay, PhonePe, Paytm, BHIM, Amazon Pay
+                            </p>
+                          </div>
+                        </>
+                      )}
+                      
+                      {currentPaymentMethodInfo.method_key !== 'upi' && (
+                        <>
+                          <p className="text-xs sm:text-sm">২. টাকা পাঠানোর পর শেষ ৪ সংখ্যা নিচে লিখুন</p>
+                          <div className="p-2 sm:p-3 bg-orange-500/20 rounded-lg border border-orange-300/30">
+                            <p className="text-orange-100 text-xs sm:text-sm">
+                              <strong>⚠️ গুরুত্বপূর্ণ:</strong> পেমেন্টের শেষ ৪ সংখ্যা সঠিকভাবে লিখুন।
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <RadioGroupItem value="nagad" id="nagad" />
-                    <Label htmlFor="nagad" className="text-base font-medium cursor-pointer flex-1 font-bengali">
-                      💳 নগদ (Nagad)
-                    </Label>
+                )}
+
+                {/* Payment Method Selection */}
+                {paymentMethods.length > 0 && (
+                  <div className="space-y-3">
+                    <Label className="text-sm sm:text-base font-semibold font-bengali">💳 পেমেন্ট মাধ্যম নির্বাচন করুন</Label>
+                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {paymentMethods.map((method) => (
+                          <Label 
+                            key={method.id}
+                            htmlFor={method.method_key}
+                            className={`flex items-center justify-center p-2 sm:p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                              paymentMethod === method.method_key 
+                                ? 'border-primary bg-primary/10' 
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                          >
+                            <RadioGroupItem value={method.method_key} id={method.method_key} className="sr-only" />
+                            <span className={`text-xs sm:text-sm font-bold truncate ${
+                              method.method_key === 'upi' ? '' : 'font-bengali'
+                            }`}>
+                              {method.display_name_bangla}
+                            </span>
+                          </Label>
+                        ))}
+                      </div>
+                    </RadioGroup>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <RadioGroupItem value="rocket" id="rocket" />
-                    <Label htmlFor="rocket" className="text-base font-medium cursor-pointer flex-1 font-bengali">
-                      🚀 রকেট (Rocket)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <RadioGroupItem value="upi" id="upi" />
-                    <Label htmlFor="upi" className="text-base font-medium cursor-pointer flex-1 font-bengali">
-                      🇮🇳 UPI (India)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <RadioGroupItem value="bank" id="bank" />
-                    <Label htmlFor="bank" className="text-base font-medium cursor-pointer flex-1 font-bengali">
-                      🏦 ব্যাংক ট্রান্সফার
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              
-              <div>
-                <Label htmlFor="lastDigits" className="text-base font-semibold mb-2 block font-bengali">
-                  {paymentMethod === 'upi' ? '🔢 Last 4 digits of Transaction ID' : '🔢 শেষ ৪টি ডিজিট'}
-                </Label>
-                <Input
-                  id="lastDigits"
-                  type="text"
-                  placeholder={paymentMethod === 'upi' ? 'e.g., 1234' : 'যেমন: 1234'}
-                  value={lastDigits}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                    setLastDigits(value);
-                  }}
-                  maxLength={4}
-                  className="text-center text-xl h-12 font-bold bg-muted/50 border-2"
-                />
-                <p className="text-xs text-muted-foreground mt-2 p-2 bg-muted/30 rounded-lg font-bengali">
-                  {paymentMethod === 'upi' 
-                    ? '💡 Enter the last 4 digits of your UPI transaction reference number'
-                    : '💡 টাকা পাঠানোর পর যে নম্বর থেকে টাকা পাঠিয়েছেন তার শেষ ৪টি সংখ্যা লিখুন'
-                  }
-                </p>
-              </div>
-              
-              <div className="flex justify-end space-x-3 pt-2">
+                )}
+
+                {/* Last 4 Digits Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="lastDigits" className="text-sm sm:text-base font-semibold font-bengali">
+                    {currentPaymentMethodInfo?.method_key === 'upi' ? '🔢 Last 4 digits' : '🔢 শেষ ৪টি ডিজিট'}
+                  </Label>
+                  <Input
+                    id="lastDigits"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={lastDigits}
+                    onChange={(e) => setLastDigits(e.target.value.replace(/\D/g, ''))}
+                    placeholder="1234"
+                    className="text-center text-base sm:text-lg font-bold tracking-wider"
+                  />
+                </div>
+
+                {/* Submit Button */}
                 <Button 
-                  variant="outline" 
-                  onClick={() => setPaymentDialog({ isOpen: false })}
-                  disabled={loading}
-                  className="px-6 py-2 font-bengali"
+                  onClick={handlePaymentSubmit} 
+                  disabled={loading || !lastDigits || lastDigits.length !== 4}
+                  className="w-full gap-2 text-sm sm:text-base py-5 sm:py-6"
                 >
-                  ❌ বাতিল
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                      <span className="font-bengali">প্রক্রিয়াকরণ...</span>
+                    </>
+                  ) : (
+                    <span className="font-bengali">✨ সাবস্ক্রিপশন জমা দিন</span>
+                  )}
                 </Button>
-                <Button 
-                  onClick={handlePaymentSubmit}
-                  disabled={loading || lastDigits.length !== 4}
-                  className="px-6 py-2 gradient-primary hover:shadow-lg font-bengali"
-                >
-                  {loading ? "⏳ জমা দিচ্ছি..." : "✅ জমা দিন"}
-                </Button>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

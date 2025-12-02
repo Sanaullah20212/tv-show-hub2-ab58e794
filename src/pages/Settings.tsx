@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Save, ArrowLeft } from 'lucide-react';
+import { PaymentMethodsManager } from '@/components/admin/PaymentMethodsManager';
 
 interface SettingsData {
   recaptcha_enabled: boolean;
@@ -149,7 +150,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
       <div className="mb-6">
         <Button
           onClick={() => navigate('/admin')}
@@ -158,13 +159,16 @@ const Settings = () => {
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          এডমিন ড্যাশবোর্ডে ফিরে যান
+          <span className="hidden sm:inline">এডমিন ড্যাশবোর্ডে ফিরে যান</span>
+          <span className="sm:hidden">ফিরে যান</span>
         </Button>
-        <h1 className="text-3xl font-bold font-bengali">সেটিংস</h1>
-        <p className="text-muted-foreground font-bengali">অ্যাপ্লিকেশন কনফিগারেশন পরিচালনা করুন</p>
+        <h1 className="text-2xl sm:text-3xl font-bold font-bengali">সেটিংস</h1>
+        <p className="text-sm sm:text-base text-muted-foreground font-bengali">অ্যাপ্লিকেশন কনফিগারেশন পরিচালনা করুন</p>
       </div>
 
       <div className="space-y-6">
+        {/* Payment Methods Manager */}
+        <PaymentMethodsManager />
         <Card>
           <CardHeader>
             <CardTitle>নিরাপত্তা সেটিংস</CardTitle>
