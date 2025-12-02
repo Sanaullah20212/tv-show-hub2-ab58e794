@@ -43,6 +43,8 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [lastDigits, setLastDigits] = useState('');
   const [loadingMethods, setLoadingMethods] = useState(true);
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchPaymentMethods();
@@ -126,7 +128,33 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
     }
 
     setLoading(true);
+    let screenshotUrl: string | null = null;
+
     try {
+      // Upload screenshot if provided
+      if (screenshot) {
+        setUploading(true);
+        const fileExt = screenshot.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('payment-screenshots')
+          .upload(fileName, screenshot);
+
+        if (uploadError) {
+          console.error('Screenshot upload error:', uploadError);
+          toast({
+            title: "স্ক্রিনশট আপলোড ব্যর্থ",
+            description: "স্ক্রিনশট আপলোড করতে সমস্যা হয়েছে। তবে সাবস্ক্রিপশন জমা দেওয়া হবে।",
+            variant: "destructive",
+          });
+        } else {
+          screenshotUrl = fileName;
+        }
+        setUploading(false);
+      }
+
+      // Continue with existing logic
       // Check for existing active or pending subscriptions
       const { data: existingSubs, error: checkError } = await supabase
         .from('subscriptions')
@@ -171,6 +199,7 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
           end_date: endDate.toISOString(),
           payment_method: paymentMethod,
           payment_last_digits: lastDigits,
+          payment_screenshot_url: screenshotUrl,
           status: 'pending',
         });
 
@@ -188,6 +217,7 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
         });
         setPaymentDialog({ isOpen: false });
         setLastDigits('');
+        setScreenshot(null);
         onSubscriptionUpdate();
       }
     } catch (error) {
@@ -484,16 +514,71 @@ export const SubscriptionPlans = ({ currentSubscription, onSubscriptionUpdate }:
                   />
                 </div>
 
+                {/* Screenshot Upload (Optional) */}
+                <div className="space-y-2">
+                  <Label htmlFor="screenshot" className="text-sm sm:text-base font-semibold font-bengali flex items-center gap-2">
+                    📸 পেমেন্ট স্ক্রিনশট 
+                    <span className="text-xs text-muted-foreground font-normal">(ঐচ্ছিক)</span>
+                  </Label>
+                  <div className="space-y-2">
+                    <Input
+                      id="screenshot"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast({
+                              title: "ফাইল বড়",
+                              description: "স্ক্রিনশট ৫ MB এর কম হতে হবে।",
+                              variant: "destructive",
+                            });
+                            e.target.value = '';
+                            return;
+                          }
+                          setScreenshot(file);
+                        }
+                      }}
+                      className="text-sm"
+                    />
+                    {screenshot && (
+                      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-xs sm:text-sm">
+                        <span className="text-green-600">✓</span>
+                        <span className="flex-1 truncate font-bengali">{screenshot.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setScreenshot(null);
+                            const input = document.getElementById('screenshot') as HTMLInputElement;
+                            if (input) input.value = '';
+                          }}
+                          className="h-6 w-6 p-0"
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground font-bengali">
+                      💡 পেমেন্টের প্রমাণ হিসেবে স্ক্রিনশট যুক্ত করুন (দ্রুত অনুমোদনের জন্য)
+                    </p>
+                  </div>
+                </div>
+
                 {/* Submit Button */}
                 <Button 
                   onClick={handlePaymentSubmit} 
-                  disabled={loading || !lastDigits || lastDigits.length !== 4}
+                  disabled={loading || uploading || !lastDigits || lastDigits.length !== 4}
                   className="w-full gap-2 text-sm sm:text-base py-5 sm:py-6"
                 >
-                  {loading ? (
+                  {loading || uploading ? (
                     <>
                       <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                      <span className="font-bengali">প্রক্রিয়াকরণ...</span>
+                      <span className="font-bengali">
+                        {uploading ? 'আপলোড হচ্ছে...' : 'প্রক্রিয়াকরণ...'}
+                      </span>
                     </>
                   ) : (
                     <span className="font-bengali">✨ সাবস্ক্রিপশন জমা দিন</span>
