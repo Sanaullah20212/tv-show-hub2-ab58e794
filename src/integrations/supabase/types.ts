@@ -554,6 +554,7 @@ export type Database = {
           paused_days_remaining: number | null
           payment_last_digits: string | null
           payment_method: string | null
+          payment_screenshot_url: string | null
           plan_months: number
           price_taka: number
           start_date: string
@@ -573,6 +574,7 @@ export type Database = {
           paused_days_remaining?: number | null
           payment_last_digits?: string | null
           payment_method?: string | null
+          payment_screenshot_url?: string | null
           plan_months: number
           price_taka: number
           start_date?: string
@@ -592,6 +594,7 @@ export type Database = {
           paused_days_remaining?: number | null
           payment_last_digits?: string | null
           payment_method?: string | null
+          payment_screenshot_url?: string | null
           plan_months?: number
           price_taka?: number
           start_date?: string

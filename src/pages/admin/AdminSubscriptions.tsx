@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { PaymentScreenshotViewer } from '@/components/PaymentScreenshotViewer';
 
 // Helper function to set end time to 11:59 PM Bangladesh Time (UTC+6)
 const setEndTimeToBangladeshMidnight = (date: Date): Date => {
@@ -621,20 +622,27 @@ const AdminSubscriptions = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>ইউজার</TableHead>
-                              <TableHead>প্ল্যান</TableHead>
-                              <TableHead>মূল্য</TableHead>
-                              <TableHead>পেমেন্ট</TableHead>
-                              <TableHead className="text-right">অ্যাকশন</TableHead>
+                              <TableHead className="font-bengali">ইউজার</TableHead>
+                              <TableHead className="font-bengali">প্ল্যান</TableHead>
+                              <TableHead className="font-bengali">মূল্য</TableHead>
+                              <TableHead className="font-bengali">পেমেন্ট</TableHead>
+                              <TableHead className="font-bengali">স্ক্রিনশট</TableHead>
+                              <TableHead className="text-right font-bengali">অ্যাকশন</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {pending.map((s) => (
                               <TableRow key={s.id}>
-                                <TableCell>{s.profiles?.mobile_number}</TableCell>
-                                <TableCell>{s.plan_months} মাস</TableCell>
-                                <TableCell>{s.price_taka} ৳</TableCell>
-                                <TableCell>{s.payment_method}</TableCell>
+                                <TableCell className="font-bengali">{s.profiles?.mobile_number}</TableCell>
+                                <TableCell className="font-bengali">{s.plan_months} মাস</TableCell>
+                                <TableCell className="font-bengali">{s.price_taka} ৳</TableCell>
+                                <TableCell className="font-bengali">{s.payment_method}</TableCell>
+                                <TableCell>
+                                  <PaymentScreenshotViewer 
+                                    screenshotUrl={s.payment_screenshot_url} 
+                                    size="sm"
+                                  />
+                                </TableCell>
                                 <TableCell className="text-right">
                                   <div className="flex justify-end gap-2">
                                     <Button size="sm" variant="outline" onClick={() => handleApprove(s.id)}>
@@ -663,25 +671,32 @@ const AdminSubscriptions = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>ইউজার</TableHead>
-                              <TableHead>প্ল্যান</TableHead>
-                              <TableHead>শেষ তারিখ</TableHead>
-                              <TableHead>স্ট্যাটাস</TableHead>
-                              <TableHead className="text-right">অ্যাকশন</TableHead>
+                              <TableHead className="font-bengali">ইউজার</TableHead>
+                              <TableHead className="font-bengali">প্ল্যান</TableHead>
+                              <TableHead className="font-bengali">শেষ তারিখ</TableHead>
+                              <TableHead className="font-bengali">স্ক্রিনশট</TableHead>
+                              <TableHead className="font-bengali">স্ট্যাটাস</TableHead>
+                              <TableHead className="text-right font-bengali">অ্যাকশন</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {active.map((s) => (
                               <TableRow key={s.id}>
-                                <TableCell>{s.profiles?.mobile_number}</TableCell>
-                                <TableCell>{s.plan_months} মাস</TableCell>
+                                <TableCell className="font-bengali">{s.profiles?.mobile_number}</TableCell>
+                                <TableCell className="font-bengali">{s.plan_months} মাস</TableCell>
                                 <TableCell>
-                                  <div className="text-sm">
+                                  <div className="text-sm font-bengali">
                                     {formatBDDate(s.end_date)}
                                     <span className="text-muted-foreground text-xs block">
                                       (রাত ১১:৫৯ পর্যন্ত)
                                     </span>
                                   </div>
+                                </TableCell>
+                                <TableCell>
+                                  <PaymentScreenshotViewer 
+                                    screenshotUrl={s.payment_screenshot_url} 
+                                    size="sm"
+                                  />
                                 </TableCell>
                                 <TableCell>
                                   {s.is_paused ? (
@@ -741,25 +756,32 @@ const AdminSubscriptions = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>ইউজার</TableHead>
-                            <TableHead>প্ল্যান</TableHead>
-                            <TableHead>মূল্য</TableHead>
-                            <TableHead>স্ট্যাটাস</TableHead>
-                            <TableHead>তারিখ</TableHead>
+                            <TableHead className="font-bengali">ইউজার</TableHead>
+                            <TableHead className="font-bengali">প্ল্যান</TableHead>
+                            <TableHead className="font-bengali">মূল্য</TableHead>
+                            <TableHead className="font-bengali">স্ক্রিনশট</TableHead>
+                            <TableHead className="font-bengali">স্ট্যাটাস</TableHead>
+                            <TableHead className="font-bengali">তারিখ</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {subscriptions.map((s) => (
                             <TableRow key={s.id}>
-                              <TableCell>{s.profiles?.mobile_number}</TableCell>
-                              <TableCell>{s.plan_months} মাস</TableCell>
-                              <TableCell>{s.price_taka} ৳</TableCell>
+                              <TableCell className="font-bengali">{s.profiles?.mobile_number}</TableCell>
+                              <TableCell className="font-bengali">{s.plan_months} মাস</TableCell>
+                              <TableCell className="font-bengali">{s.price_taka} ৳</TableCell>
+                              <TableCell>
+                                <PaymentScreenshotViewer 
+                                  screenshotUrl={s.payment_screenshot_url} 
+                                  size="sm"
+                                />
+                              </TableCell>
                               <TableCell>
                                 <Badge variant={s.status === 'active' ? 'default' : 'secondary'}>
                                   {s.status}
                                 </Badge>
                               </TableCell>
-                              <TableCell>{new Date(s.created_at).toLocaleDateString('bn-BD')}</TableCell>
+                              <TableCell className="font-bengali">{new Date(s.created_at).toLocaleDateString('bn-BD')}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
