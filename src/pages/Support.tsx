@@ -21,69 +21,79 @@ const Support = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl py-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard")}
-          className="mb-6 animate-fade-in"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          ড্যাশবোর্ডে ফিরে যান
-        </Button>
+      {/* Mobile-Friendly Header */}
+      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-xl">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/dashboard")}
+              size="sm"
+              className="font-bengali gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">ড্যাশবোর্ডে ফিরে যান</span>
+              <span className="sm:hidden">ফিরে যান</span>
+            </Button>
+            <h1 className="text-base sm:text-xl font-bold font-bengali">সাহায্য ও সহযোগিতা</h1>
+            <div className="w-[72px] sm:w-[120px]"></div>
+          </div>
+        </div>
+      </header>
 
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold mb-2">সাহায্য ও সহযোগিতা</h1>
-          <p className="text-muted-foreground">
+      <div className="container max-w-6xl px-3 sm:px-4 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <p className="text-sm sm:text-base text-muted-foreground font-bengali text-center sm:text-left">
             আমরা আপনাকে সাহায্য করতে এখানে আছি। নিচের যেকোনো উপায়ে আমাদের সাথে যোগাযোগ করুন।
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-3 mb-6 sm:mb-8">
           <Card className="animate-fade-in hover-scale">
             <CardHeader>
-              <MessageCircle className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle>লাইভ চ্যাট</CardTitle>
-              <CardDescription>
+              <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 mb-2 text-primary" />
+              <CardTitle className="text-base sm:text-lg font-bengali">লাইভ চ্যাট</CardTitle>
+              <CardDescription className="text-xs sm:text-sm font-bengali">
                 তাৎক্ষণিক সহায়তার জন্য আমাদের সাথে চ্যাট করুন
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">চ্যাট শুরু করুন</Button>
+              <Button className="w-full text-sm sm:text-base font-bengali">চ্যাট শুরু করুন</Button>
             </CardContent>
           </Card>
 
           <Card className="animate-fade-in hover-scale" style={{ animationDelay: "0.1s" }}>
             <CardHeader>
-              <Mail className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle>ইমেইল</CardTitle>
-              <CardDescription>
+              <Mail className="h-6 w-6 sm:h-8 sm:w-8 mb-2 text-primary" />
+              <CardTitle className="text-base sm:text-lg font-bengali">ইমেইল</CardTitle>
+              <CardDescription className="text-xs sm:text-sm font-bengali">
                 support@tvshow.com এ আমাদের লিখুন
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">ইমেইল পাঠান</Button>
+              <Button variant="outline" className="w-full text-sm sm:text-base font-bengali">ইমেইল পাঠান</Button>
             </CardContent>
           </Card>
 
           <Card className="animate-fade-in hover-scale" style={{ animationDelay: "0.2s" }}>
             <CardHeader>
-              <Phone className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle>ফোন</CardTitle>
-              <CardDescription>
+              <Phone className="h-6 w-6 sm:h-8 sm:w-8 mb-2 text-primary" />
+              <CardTitle className="text-base sm:text-lg font-bengali">ফোন</CardTitle>
+              <CardDescription className="text-xs sm:text-sm font-bengali">
                 +880 1XXX-XXXXXX (সকাল ৯টা - রাত ৯টা)
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">কল করুন</Button>
+              <Button variant="outline" className="w-full text-sm sm:text-base font-bengali">কল করুন</Button>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
           <Card className="animate-fade-in" style={{ animationDelay: "0.3s" }}>
             <CardHeader>
-              <CardTitle>আমাদের মেসেজ পাঠান</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-base sm:text-lg font-bengali">আমাদের মেসেজ পাঠান</CardTitle>
+              <CardDescription className="text-xs sm:text-sm font-bengali">
                 আপনার সমস্যা বা প্রশ্ন লিখুন এবং আমরা শীঘ্রই উত্তর দেব
               </CardDescription>
             </CardHeader>
@@ -95,6 +105,7 @@ const Support = () => {
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     required
+                    className="font-bengali text-sm sm:text-base"
                   />
                 </div>
                 <div>
@@ -104,9 +115,10 @@ const Support = () => {
                     onChange={(e) => setMessage(e.target.value)}
                     required
                     rows={6}
+                    className="font-bengali text-sm sm:text-base"
                   />
                 </div>
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full text-sm sm:text-base font-bengali">
                   মেসেজ পাঠান
                 </Button>
               </form>
@@ -115,26 +127,26 @@ const Support = () => {
 
           <Card className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
             <CardHeader>
-              <FileQuestion className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle>সাধারণ প্রশ্নাবলী (FAQ)</CardTitle>
-              <CardDescription>সচরাচর জিজ্ঞাসিত প্রশ্নের উত্তর</CardDescription>
+              <FileQuestion className="h-6 w-6 sm:h-8 sm:w-8 mb-2 text-primary" />
+              <CardTitle className="text-base sm:text-lg font-bengali">সাধারণ প্রশ্নাবলী (FAQ)</CardTitle>
+              <CardDescription className="text-xs sm:text-sm font-bengali">সচরাচর জিজ্ঞাসিত প্রশ্নের উত্তর</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <h4 className="font-semibold">কিভাবে সাবস্ক্রিপশন নবায়ন করব?</h4>
-                <p className="text-sm text-muted-foreground">
+                <h4 className="text-sm sm:text-base font-semibold font-bengali">কিভাবে সাবস্ক্রিপশন নবায়ন করব?</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground font-bengali">
                   Plans পেজে গিয়ে আপনার পছন্দের প্ল্যান নির্বাচন করুন এবং পেমেন্ট সম্পন্ন করুন।
                 </p>
               </div>
               <div className="space-y-2">
-                <h4 className="font-semibold">ZIP পাসওয়ার্ড কোথায় পাব?</h4>
-                <p className="text-sm text-muted-foreground">
+                <h4 className="text-sm sm:text-base font-semibold font-bengali">ZIP পাসওয়ার্ড কোথায় পাব?</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground font-bengali">
                   Settings পেজে ZIP Passwords সেকশনে সকল পাসওয়ার্ড পাবেন।
                 </p>
               </div>
               <div className="space-y-2">
-                <h4 className="font-semibold">ডাউনলোড স্পীড কম কেন?</h4>
-                <p className="text-sm text-muted-foreground">
+                <h4 className="text-sm sm:text-base font-semibold font-bengali">ডাউনলোড স্পীড কম কেন?</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground font-bengali">
                   আপনার ইন্টারনেট সংযোগ এবং Google Drive সার্ভারের উপর নির্ভর করে। VPN ব্যবহার করে দেখতে পারেন।
                 </p>
               </div>

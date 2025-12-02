@@ -70,16 +70,35 @@ const TvAccess = () => {
 
   if (error || !hasAccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center max-w-md">
-          <p className="text-destructive mb-6 text-lg">{error || 'অ্যাক্সেস নেই'}</p>
-          <Button
-            onClick={() => navigate('/dashboard')}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            ড্যাশবোর্ডে ফিরে যান
-          </Button>
+      <div className="min-h-screen flex items-center justify-center bg-background p-3 sm:p-4">
+        <div className="text-center max-w-md px-4">
+          <div className="mb-6">
+            <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <span className="text-4xl sm:text-5xl">📺</span>
+            </div>
+            <p className="text-destructive mb-4 text-base sm:text-lg font-bengali font-semibold">
+              {error || 'অ্যাক্সেস নেই'}
+            </p>
+            <p className="text-sm text-muted-foreground font-bengali mb-6">
+              টিভি দেখতে সক্রিয় সাবস্ক্রিপশন প্রয়োজন
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
+            <Button
+              onClick={() => navigate('/plans')}
+              className="font-bengali w-full sm:w-auto"
+            >
+              প্ল্যান দেখুন
+            </Button>
+            <Button
+              onClick={() => navigate('/dashboard')}
+              variant="outline"
+              className="font-bengali w-full sm:w-auto gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              ড্যাশবোর্ডে ফিরে যান
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -87,15 +106,15 @@ const TvAccess = () => {
 
   return (
     <div className="relative w-full h-screen bg-background">
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-2 sm:top-4 left-2 sm:left-4 z-10">
         <Button
           onClick={() => navigate('/dashboard')}
           variant="secondary"
           size="sm"
-          className="gap-2"
+          className="gap-2 font-bengali"
         >
           <ArrowLeft className="h-4 w-4" />
-          ফিরে যান
+          <span className="hidden sm:inline">ফিরে যান</span>
         </Button>
       </div>
       

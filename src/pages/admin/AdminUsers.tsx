@@ -18,10 +18,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { UserCard } from '@/components/admin/UserCard';
 
 const AdminUsers = () => {
   const { user, profile, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [users, setUsers] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -803,10 +806,51 @@ const AdminUsers = () => {
                   ) : filteredUsers.length === 0 ? (
                     <div className="text-center py-12">
                       <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">কোনো ইউজার পাওয়া যায়নি</h3>
-                      <p className="text-muted-foreground">এই ফিল্টার অনুযায়ী কোনো ইউজার খুঁজে পাওয়া যায়নি</p>
+                      <h3 className="text-base sm:text-lg font-semibold mb-2 font-bengali">কোনো ইউজার পাওয়া যায়নি</h3>
+                      <p className="text-sm text-muted-foreground font-bengali">এই ফিল্টার অনুযায়ী কোনো ইউজার খুঁজে পাওয়া যায়নি</p>
+                    </div>
+                  ) : isMobile ? (
+                    /* Mobile Card View */
+                    <div className="space-y-3">
+                      {filteredUsers.map((u) => (
+                        <UserCard
+                          key={u.id}
+                          user={u}
+                          isSelected={selectedUsers.has(u.user_id)}
+                          onToggleSelect={() => toggleUserSelection(u.user_id)}
+                          onToggleUserType={handleToggleUserType}
+                          onCancelSubscription={handleCancelSubscription}
+                          onDeleteUser={handleDeleteUser}
+                          onCreateSubscription={handleCreateSubscription}
+                          dialogOpen={dialogOpen && selectedUser?.id === u.id}
+                          setDialogOpen={(open) => {
+                            setDialogOpen(open);
+                            if (open) setSelectedUser(u);
+                            else {
+                              setSelectedUser(null);
+                              setPlanMonths('1');
+                              setPriceTaka('');
+                              setPaymentMethod('');
+                            }
+                          }}
+                          selectedPlan={selectedPlan}
+                          setSelectedPlan={setSelectedPlan}
+                          paymentMethod={paymentMethod}
+                          setPaymentMethod={setPaymentMethod}
+                          priceTaka={priceTaka}
+                          setPriceTaka={setPriceTaka}
+                          useCustomDate={useCustomDate}
+                          setUseCustomDate={setUseCustomDate}
+                          startDate={startDate}
+                          setStartDate={setStartDate}
+                          endDate={endDate}
+                          setEndDate={setEndDate}
+                          predefinedPlans={predefinedPlans}
+                        />
+                      ))}
                     </div>
                   ) : (
+                    /* Desktop Table View */
                     <div className="rounded-lg border border-border/50 overflow-hidden">
                       <div className="overflow-x-auto">
                         <Table>

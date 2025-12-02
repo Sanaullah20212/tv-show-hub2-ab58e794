@@ -74,20 +74,21 @@ const UserSettings = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      {/* Mobile-Friendly Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-xl">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
               <Button
                 onClick={() => navigate('/dashboard')}
-                variant="outline"
+                variant="ghost"
                 size="sm"
+                className="shrink-0"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                ফিরে যান
+                <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline font-bengali">ফিরে যান</span>
               </Button>
-              <h1 className="text-2xl sm:text-3xl font-bold font-bengali">
+              <h1 className="text-base sm:text-2xl md:text-3xl font-bold font-bengali truncate">
                 প্রোফাইল সেটিংস
               </h1>
             </div>
@@ -96,14 +97,14 @@ const UserSettings = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Tabs defaultValue="profile" className="space-y-6">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
+        <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="profile" className="font-bengali">প্রোফাইল</TabsTrigger>
-            <TabsTrigger value="preferences" className="font-bengali">প্রেফারেন্স</TabsTrigger>
+            <TabsTrigger value="profile" className="font-bengali text-xs sm:text-sm">প্রোফাইল</TabsTrigger>
+            <TabsTrigger value="preferences" className="font-bengali text-xs sm:text-sm">প্রেফারেন্স</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile" className="space-y-6">
+          <TabsContent value="profile" className="space-y-4 sm:space-y-6">
           {/* Profile Card */}
           <Card className="card-hover">
             <CardHeader>
@@ -114,20 +115,20 @@ const UserSettings = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Avatar Section */}
-              <div className="flex items-center gap-6">
-                <Avatar className="h-24 w-24 border-4 border-primary/20">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-primary/20 shrink-0">
                   <AvatarImage src={avatarUrl} alt={displayName} />
-                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-accent text-white">
+                  <AvatarFallback className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-primary to-accent text-white">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <div className="space-y-2">
+                <div className="space-y-2 text-center sm:text-left w-full sm:w-auto">
                   <p className="text-sm text-muted-foreground font-bengali">
                     প্রোফাইল ছবি
                   </p>
-                  <Button variant="outline" size="sm" disabled>
+                  <Button variant="outline" size="sm" disabled className="w-full sm:w-auto">
                     <Camera className="h-4 w-4 mr-2" />
-                    ছবি আপলোড করুন
+                    <span className="font-bengali">ছবি আপলোড করুন</span>
                   </Button>
                   <p className="text-xs text-muted-foreground font-bengali">
                     (শীঘ্রই আসছে)
@@ -216,20 +217,20 @@ const UserSettings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground font-bengali mb-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 sm:p-4 rounded-lg bg-muted/50">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-bengali mb-1">
                     অ্যাকাউন্ট টাইপ
                   </p>
-                  <p className="font-semibold font-bengali">
+                  <p className="text-sm sm:text-base font-semibold font-bengali">
                     {profile?.user_type === 'mobile' ? '📱 মোবাইল' : '💼 বিজনেস'}
                   </p>
                 </div>
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground font-bengali mb-1">
+                <div className="p-3 sm:p-4 rounded-lg bg-muted/50">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-bengali mb-1">
                     ভূমিকা
                   </p>
-                  <p className="font-semibold font-bengali">
+                  <p className="text-sm sm:text-base font-semibold font-bengali">
                     {profile?.role === 'admin' ? '👑 অ্যাডমিন' : '👤 ব্যবহারকারী'}
                   </p>
                 </div>
