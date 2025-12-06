@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogOut, ArrowLeft, History, CreditCard } from 'lucide-react';
+import { LogOut, ArrowLeft, History, CreditCard, Info } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import SubscriptionPlans from '@/components/SubscriptionPlans';
 import { PaymentHistory } from '@/components/PaymentHistory';
+import SubscriptionDetails from '@/components/SubscriptionDetails';
 
 const Plans = () => {
   const { user, profile, loading, signOut } = useAuth();
@@ -13,8 +14,9 @@ const Plans = () => {
   const location = useLocation();
   const [subscription, setSubscription] = useState<any>(null);
   
-  // Check if we should show payment history based on hash
-  const showHistory = location.hash === '#history';
+  // Check hash for tab navigation
+  const currentTab = location.hash === '#history' ? 'history' : 
+                     location.hash === '#details' ? 'details' : 'plans';
 
   useEffect(() => {
     if (user) {
@@ -84,32 +86,47 @@ const Plans = () => {
       </header>
 
       <div className="container mx-auto px-4 py-6 sm:py-8 space-y-6">
-        {/* Tab Buttons - Centered */}
-        <div className="flex items-center justify-center gap-2">
+        {/* Tab Buttons - Responsive */}
+        <div className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
           <Button
-            variant={!showHistory ? "default" : "outline"}
+            variant={currentTab === 'plans' ? "default" : "outline"}
             onClick={() => navigate('/plans')}
-            className="font-bengali gap-2 px-6"
+            className="font-bengali gap-1 sm:gap-2 px-3 sm:px-6 text-xs sm:text-sm"
             size="sm"
           >
-            <CreditCard className="h-4 w-4" />
+            <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
             প্ল্যান
           </Button>
           <Button
-            variant={showHistory ? "default" : "outline"}
-            onClick={() => navigate('/plans#history')}
-            className="font-bengali gap-2 px-6"
+            variant={currentTab === 'details' ? "default" : "outline"}
+            onClick={() => navigate('/plans#details')}
+            className="font-bengali gap-1 sm:gap-2 px-3 sm:px-6 text-xs sm:text-sm"
             size="sm"
           >
-            <History className="h-4 w-4" />
+            <Info className="h-3 w-3 sm:h-4 sm:w-4" />
+            বিবরণ
+          </Button>
+          <Button
+            variant={currentTab === 'history' ? "default" : "outline"}
+            onClick={() => navigate('/plans#history')}
+            className="font-bengali gap-1 sm:gap-2 px-3 sm:px-6 text-xs sm:text-sm"
+            size="sm"
+          >
+            <History className="h-3 w-3 sm:h-4 sm:w-4" />
             হিস্টরি
           </Button>
         </div>
 
         {/* Conditional Content */}
-        {!showHistory ? (
+        {currentTab === 'plans' && (
           <SubscriptionPlans currentSubscription={subscription} onSubscriptionUpdate={fetchSubscription} />
-        ) : (
+        )}
+        {currentTab === 'details' && (
+          <div className="max-w-2xl mx-auto">
+            <SubscriptionDetails subscription={subscription} />
+          </div>
+        )}
+        {currentTab === 'history' && (
           <PaymentHistory />
         )}
       </div>
