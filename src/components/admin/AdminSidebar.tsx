@@ -72,18 +72,11 @@ const menuGroups = [
     label: "ব্যবহারকারী ও অ্যাক্সেস",
     items: [
       { 
-        title: "ব্যবহারকারী", 
-        description: "সব ইউজার দেখুন", 
-        url: "/admin/users", 
+        title: "মেম্বার", 
+        description: "ইউজার ও সাবস্ক্রিপশন", 
+        url: "/admin/members", 
         icon: Users,
         color: "primary"
-      },
-      { 
-        title: "সাবস্ক্রিপশন", 
-        description: "প্ল্যান অনুমোদন", 
-        url: "/admin/subscriptions", 
-        icon: CreditCard,
-        color: "secondary"
       },
       { 
         title: "সেশন", 
