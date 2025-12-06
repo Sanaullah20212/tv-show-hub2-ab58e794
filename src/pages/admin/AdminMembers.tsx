@@ -57,8 +57,10 @@ const AdminMembers = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [extendDialogOpen, setExtendDialogOpen] = useState(false);
+  const [duplicateWarningOpen, setDuplicateWarningOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedSubscription, setSelectedSubscription] = useState<any>(null);
+  const [existingSubscription, setExistingSubscription] = useState<any>(null);
   
   // Form states
   const [selectedPlan, setSelectedPlan] = useState<string>('');
@@ -341,8 +343,30 @@ const AdminMembers = () => {
     }
   };
 
+  // Check for existing subscription before creating
+  const checkAndCreateSubscription = () => {
+    if (!selectedUser || !selectedPlan || !paymentMethod) {
+      toast.error('সব তথ্য পূরণ করুন');
+      return;
+    }
+
+    // Check for existing active or pending subscription
+    const existingSub = subscriptions.find(s => 
+      s.user_id === selectedUser.user_id && 
+      (s.status === 'active' || s.status === 'pending') &&
+      new Date(s.end_date) > new Date()
+    );
+
+    if (existingSub) {
+      setExistingSubscription(existingSub);
+      setDuplicateWarningOpen(true);
+    } else {
+      handleCreateSubscription(false);
+    }
+  };
+
   // Create subscription
-  const handleCreateSubscription = async () => {
+  const handleCreateSubscription = async (cancelExisting: boolean) => {
     if (!selectedUser || !selectedPlan || !paymentMethod) {
       toast.error('সব তথ্য পূরণ করুন');
       return;
@@ -352,6 +376,14 @@ const AdminMembers = () => {
     if (!plan) return;
 
     try {
+      // Cancel existing subscription if requested
+      if (cancelExisting && existingSubscription) {
+        await supabase
+          .from('subscriptions')
+          .update({ status: 'cancelled' })
+          .eq('id', existingSubscription.id);
+      }
+
       let subscriptionEndDate = new Date();
       let finalPrice = plan.price;
 
@@ -384,6 +416,7 @@ const AdminMembers = () => {
 
       toast.success(`সাবস্ক্রিপশন তৈরি হয়েছে (${finalPrice} টাকা)`);
       setDialogOpen(false);
+      setDuplicateWarningOpen(false);
       resetForm();
       fetchData();
     } catch (error) {
@@ -402,6 +435,7 @@ const AdminMembers = () => {
     setExtendDays('');
     setSelectedUser(null);
     setSelectedSubscription(null);
+    setExistingSubscription(null);
   };
 
   // Extend subscription
@@ -574,7 +608,7 @@ const AdminMembers = () => {
                   </div>
                 )}
                 
-                <Button onClick={handleCreateSubscription} className="w-full">তৈরি করুন</Button>
+                <Button onClick={checkAndCreateSubscription} className="w-full">তৈরি করুন</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -921,7 +955,7 @@ const AdminMembers = () => {
                                               </SelectContent>
                                             </Select>
                                           </div>
-                                          <Button onClick={handleCreateSubscription} className="w-full">তৈরি করুন</Button>
+                                          <Button onClick={checkAndCreateSubscription} className="w-full">তৈরি করুন</Button>
                                         </div>
                                       </DialogContent>
                                     </Dialog>
@@ -1115,6 +1149,51 @@ const AdminMembers = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Duplicate Subscription Warning Dialog */}
+      <AlertDialog open={duplicateWarningOpen} onOpenChange={setDuplicateWarningOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-orange-600">
+              <AlertCircle className="h-5 w-5" />
+              সাবস্ক্রিপশন ইতিমধ্যে আছে!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>এই ইউজারের ইতিমধ্যে একটি {existingSubscription?.status === 'active' ? 'সক্রিয়' : 'পেন্ডিং'} সাবস্ক্রিপশন আছে।</p>
+              {existingSubscription && (
+                <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
+                  <p><strong>স্ট্যাটাস:</strong> {existingSubscription.status === 'active' ? 'সক্রিয়' : 'পেন্ডিং'}</p>
+                  <p><strong>মেয়াদ:</strong> {formatBDDate(existingSubscription.end_date)} পর্যন্ত</p>
+                  <p><strong>প্ল্যান:</strong> {existingSubscription.plan_months} মাস</p>
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground mt-2">
+                আগের সাবস্ক্রিপশন বাতিল করে নতুন তৈরি করতে চান?
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={() => {
+              setDuplicateWarningOpen(false);
+              setExistingSubscription(null);
+            }}>
+              বাতিল
+            </AlertDialogCancel>
+            <Button 
+              variant="outline" 
+              onClick={() => handleCreateSubscription(false)}
+            >
+              আগেরটা রেখে নতুন যোগ করুন
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => handleCreateSubscription(true)}
+            >
+              আগেরটা বাতিল করে নতুন যোগ করুন
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarProvider>
   );
 };
