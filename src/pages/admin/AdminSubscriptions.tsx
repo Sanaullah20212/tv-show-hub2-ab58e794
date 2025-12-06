@@ -19,6 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PaymentScreenshotViewer } from '@/components/PaymentScreenshotViewer';
+import { SubscriptionCard } from '@/components/admin/SubscriptionCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Helper function to set end time to 11:59 PM Bangladesh Time (UTC+6)
 const setEndTimeToBangladeshMidnight = (date: Date): Date => {
@@ -45,6 +47,7 @@ const formatBDDate = (dateStr: string): string => {
 const AdminSubscriptions = () => {
   const { user, profile, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
@@ -618,6 +621,19 @@ const AdminSubscriptions = () => {
                         </div>
                       ) : pending.length === 0 ? (
                         <p className="text-center py-8 text-muted-foreground font-bengali">কোনো পেন্ডিং নেই</p>
+                      ) : isMobile ? (
+                        <div className="space-y-3">
+                          {pending.map((s) => (
+                            <SubscriptionCard
+                              key={s.id}
+                              subscription={s}
+                              type="pending"
+                              onApprove={handleApprove}
+                              onReject={handleReject}
+                              formatBDDate={formatBDDate}
+                            />
+                          ))}
+                        </div>
                       ) : (
                         <Table>
                           <TableHeader>
@@ -667,6 +683,23 @@ const AdminSubscriptions = () => {
                     <CardContent className="pt-6">
                       {active.length === 0 ? (
                         <p className="text-center py-8 text-muted-foreground font-bengali">কোনো সক্রিয় সাবস্ক্রিপশন নেই</p>
+                      ) : isMobile ? (
+                        <div className="space-y-3">
+                          {active.map((s) => (
+                            <SubscriptionCard
+                              key={s.id}
+                              subscription={s}
+                              type="active"
+                              onPause={handlePause}
+                              onResume={handleResume}
+                              onUpgrade={(sub) => {
+                                setSelectedSubscription(sub);
+                                setUpgradeDialogOpen(true);
+                              }}
+                              formatBDDate={formatBDDate}
+                            />
+                          ))}
+                        </div>
                       ) : (
                         <Table>
                           <TableHeader>
@@ -753,39 +786,52 @@ const AdminSubscriptions = () => {
                 <TabsContent value="all">
                   <Card>
                     <CardContent className="pt-6">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="font-bengali">ইউজার</TableHead>
-                            <TableHead className="font-bengali">প্ল্যান</TableHead>
-                            <TableHead className="font-bengali">মূল্য</TableHead>
-                            <TableHead className="font-bengali">স্ক্রিনশট</TableHead>
-                            <TableHead className="font-bengali">স্ট্যাটাস</TableHead>
-                            <TableHead className="font-bengali">তারিখ</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                      {isMobile ? (
+                        <div className="space-y-3">
                           {subscriptions.map((s) => (
-                            <TableRow key={s.id}>
-                              <TableCell className="font-bengali">{s.profiles?.mobile_number}</TableCell>
-                              <TableCell className="font-bengali">{s.plan_months} মাস</TableCell>
-                              <TableCell className="font-bengali">{s.price_taka} ৳</TableCell>
-                              <TableCell>
-                                <PaymentScreenshotViewer 
-                                  screenshotUrl={s.payment_screenshot_url} 
-                                  size="sm"
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant={s.status === 'active' ? 'default' : 'secondary'}>
-                                  {s.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="font-bengali">{new Date(s.created_at).toLocaleDateString('bn-BD')}</TableCell>
-                            </TableRow>
+                            <SubscriptionCard
+                              key={s.id}
+                              subscription={s}
+                              type="all"
+                              formatBDDate={formatBDDate}
+                            />
                           ))}
-                        </TableBody>
-                      </Table>
+                        </div>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="font-bengali">ইউজার</TableHead>
+                              <TableHead className="font-bengali">প্ল্যান</TableHead>
+                              <TableHead className="font-bengali">মূল্য</TableHead>
+                              <TableHead className="font-bengali">স্ক্রিনশট</TableHead>
+                              <TableHead className="font-bengali">স্ট্যাটাস</TableHead>
+                              <TableHead className="font-bengali">তারিখ</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {subscriptions.map((s) => (
+                              <TableRow key={s.id}>
+                                <TableCell className="font-bengali">{s.profiles?.mobile_number}</TableCell>
+                                <TableCell className="font-bengali">{s.plan_months} মাস</TableCell>
+                                <TableCell className="font-bengali">{s.price_taka} ৳</TableCell>
+                                <TableCell>
+                                  <PaymentScreenshotViewer 
+                                    screenshotUrl={s.payment_screenshot_url} 
+                                    size="sm"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={s.status === 'active' ? 'default' : 'secondary'}>
+                                    {s.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-bengali">{new Date(s.created_at).toLocaleDateString('bn-BD')}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
