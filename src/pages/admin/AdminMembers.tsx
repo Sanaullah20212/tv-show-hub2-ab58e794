@@ -162,7 +162,8 @@ const AdminMembers = () => {
 
   // Subscription categories
   const pending = subscriptions.filter(s => s.status === 'pending');
-  const active = subscriptions.filter(s => s.status === 'active');
+  const active = subscriptions.filter(s => s.status === 'active' && new Date(s.end_date) > new Date());
+  const expired = subscriptions.filter(s => s.status === 'active' && new Date(s.end_date) <= new Date());
 
   // User type toggle
   const handleToggleUserType = async (userId: string, currentType: string) => {
