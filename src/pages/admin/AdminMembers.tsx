@@ -438,20 +438,65 @@ const AdminMembers = () => {
               <DialogHeader>
                 <DialogTitle className="font-bengali">সাবস্ক্রিপশন তৈরি</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 py-4">
+              <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
                 <div className="space-y-2">
                   <Label>ইউজার</Label>
                   <Input value={u.mobile_number || ''} disabled />
                 </div>
                 <div className="space-y-2">
                   <Label>প্ল্যান</Label>
-                  <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+                  <Select value={selectedPlan} onValueChange={(val) => {
+                    setSelectedPlan(val);
+                    if (val === 'custom') {
+                      setUseCustomDate(true);
+                    } else {
+                      setUseCustomDate(false);
+                    }
+                  }}>
                     <SelectTrigger><SelectValue placeholder="প্ল্যান নির্বাচন" /></SelectTrigger>
                     <SelectContent>
                       {predefinedPlans.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
+                
+                {/* Custom date fields for mobile */}
+                {useCustomDate && (
+                  <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        শুরু তারিখ
+                      </Label>
+                      <Input 
+                        type="date" 
+                        value={startDate} 
+                        onChange={(e) => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        শেষ তারিখ
+                      </Label>
+                      <Input 
+                        type="date" 
+                        value={endDate} 
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>মূল্য (টাকা)</Label>
+                      <Input 
+                        type="number" 
+                        placeholder="কাস্টম মূল্য" 
+                        value={priceTaka} 
+                        onChange={(e) => setPriceTaka(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+                
                 <div className="space-y-2">
                   <Label>পেমেন্ট মেথড</Label>
                   <Select value={paymentMethod} onValueChange={setPaymentMethod}>
@@ -465,10 +510,14 @@ const AdminMembers = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>টাকা (ঐচ্ছিক)</Label>
-                  <Input type="number" value={priceTaka} onChange={(e) => setPriceTaka(e.target.value)} placeholder="ডিফল্ট মূল্য" />
-                </div>
+                
+                {!useCustomDate && (
+                  <div className="space-y-2">
+                    <Label>টাকা (ঐচ্ছিক)</Label>
+                    <Input type="number" value={priceTaka} onChange={(e) => setPriceTaka(e.target.value)} placeholder="ডিফল্ট মূল্য" />
+                  </div>
+                )}
+                
                 <Button onClick={handleCreateSubscription} className="w-full">তৈরি করুন</Button>
               </div>
             </DialogContent>
