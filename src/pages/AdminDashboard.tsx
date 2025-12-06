@@ -274,7 +274,7 @@ const AdminDashboard = () => {
       value: stats.totalUsers,
       icon: Users,
       colorClass: "stat-blue",
-      link: "/admin/users"
+      link: "/admin/members"
     },
     {
       title: "অনলাইন এখন",
@@ -290,7 +290,7 @@ const AdminDashboard = () => {
       value: stats.activeSubscriptions,
       icon: CreditCard,
       colorClass: "stat-purple",
-      link: "/admin/subscriptions"
+      link: "/admin/members"
     },
     {
       title: "অনুমোদন বাকি",
@@ -299,7 +299,7 @@ const AdminDashboard = () => {
       icon: Clock,
       colorClass: "stat-orange",
       alert: stats.pendingApprovals > 0,
-      link: "/admin/subscriptions"
+      link: "/admin/members"
     },
     {
       title: "শীঘ্রই মেয়াদ শেষ",
@@ -307,7 +307,8 @@ const AdminDashboard = () => {
       value: stats.expiringSoon,
       icon: AlertCircle,
       colorClass: "stat-red",
-      alert: stats.expiringSoon > 0
+      alert: stats.expiringSoon > 0,
+      link: "/admin/members"
     },
   ];
 
