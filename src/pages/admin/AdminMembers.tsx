@@ -56,6 +56,7 @@ const AdminMembers = () => {
   // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [extendDialogOpen, setExtendDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedSubscription, setSelectedSubscription] = useState<any>(null);
   
@@ -66,6 +67,8 @@ const AdminMembers = () => {
   const [useCustomDate, setUseCustomDate] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [extendDays, setExtendDays] = useState('');
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
 
   const predefinedPlans = [
     { id: 'plan1', name: '১ মাস - ২০০ টাকা', months: 1, price: 200 },
@@ -77,8 +80,24 @@ const AdminMembers = () => {
   useEffect(() => {
     if (user && profile?.role === 'admin') {
       fetchData();
+      fetchPaymentMethods();
     }
   }, [user, profile]);
+
+  const fetchPaymentMethods = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+      
+      if (error) throw error;
+      setPaymentMethods(data || []);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -380,7 +399,44 @@ const AdminMembers = () => {
     setUseCustomDate(false);
     setStartDate('');
     setEndDate('');
+    setExtendDays('');
     setSelectedUser(null);
+    setSelectedSubscription(null);
+  };
+
+  // Extend subscription
+  const handleExtendSubscription = async () => {
+    if (!selectedSubscription || !extendDays) {
+      toast.error('দিন সংখ্যা দিন');
+      return;
+    }
+
+    try {
+      const days = parseInt(extendDays, 10);
+      if (isNaN(days) || days <= 0) {
+        toast.error('সঠিক দিন সংখ্যা দিন');
+        return;
+      }
+
+      const currentEndDate = new Date(selectedSubscription.end_date);
+      currentEndDate.setDate(currentEndDate.getDate() + days);
+      const newEndDate = setEndTimeToBangladeshMidnight(currentEndDate);
+
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ end_date: newEndDate.toISOString() })
+        .eq('id', selectedSubscription.id);
+
+      if (error) throw error;
+
+      toast.success(`সাবস্ক্রিপশন ${days} দিন বাড়ানো হয়েছে`);
+      setExtendDialogOpen(false);
+      resetForm();
+      fetchData();
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('সাবস্ক্রিপশন এক্সটেন্ড করতে ব্যর্থ');
+    }
   };
 
   // Mobile user card
@@ -502,9 +558,9 @@ const AdminMembers = () => {
                   <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                     <SelectTrigger><SelectValue placeholder="মেথড নির্বাচন" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="bkash">বিকাশ</SelectItem>
-                      <SelectItem value="nagad">নগদ</SelectItem>
-                      <SelectItem value="rocket">রকেট</SelectItem>
+                      {paymentMethods.map(pm => (
+                        <SelectItem key={pm.id} value={pm.method_key}>{pm.display_name_bangla}</SelectItem>
+                      ))}
                       <SelectItem value="cash">ক্যাশ</SelectItem>
                       <SelectItem value="free">ফ্রি</SelectItem>
                     </SelectContent>
@@ -596,7 +652,7 @@ const AdminMembers = () => {
             </>
           )}
           {type === 'active' && (
-            <>
+            <div className="flex gap-2 flex-wrap">
               {s.is_paused ? (
                 <Button size="sm" variant="outline" className="flex-1" onClick={() => handleResume(s.id)}>
                   <Play className="h-3 w-3 mr-1" />রিজিউম
@@ -606,7 +662,18 @@ const AdminMembers = () => {
                   <Pause className="h-3 w-3 mr-1" />পজ
                 </Button>
               )}
-            </>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => {
+                  setSelectedSubscription(s);
+                  setExtendDialogOpen(true);
+                }}
+              >
+                <ArrowUpCircle className="h-3 w-3 mr-1" />এক্সটেন্ড
+              </Button>
+            </div>
           )}
         </div>
       </CardContent>
@@ -846,8 +913,9 @@ const AdminMembers = () => {
                                             <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                                               <SelectTrigger><SelectValue placeholder="মেথড" /></SelectTrigger>
                                               <SelectContent>
-                                                <SelectItem value="bkash">বিকাশ</SelectItem>
-                                                <SelectItem value="nagad">নগদ</SelectItem>
+                                                {paymentMethods.map(pm => (
+                                                  <SelectItem key={pm.id} value={pm.method_key}>{pm.display_name_bangla}</SelectItem>
+                                                ))}
                                                 <SelectItem value="cash">ক্যাশ</SelectItem>
                                                 <SelectItem value="free">ফ্রি</SelectItem>
                                               </SelectContent>
@@ -982,6 +1050,16 @@ const AdminMembers = () => {
                                         <Pause className="h-4 w-4 text-orange-600" />
                                       </Button>
                                     )}
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      onClick={() => {
+                                        setSelectedSubscription(s);
+                                        setExtendDialogOpen(true);
+                                      }}
+                                    >
+                                      <ArrowUpCircle className="h-4 w-4 text-primary" />
+                                    </Button>
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -997,6 +1075,46 @@ const AdminMembers = () => {
           </main>
         </div>
       </div>
+
+      {/* Extend Subscription Dialog */}
+      <Dialog open={extendDialogOpen} onOpenChange={(open) => {
+        setExtendDialogOpen(open);
+        if (!open) resetForm();
+      }}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="font-bengali">সাবস্ক্রিপশন এক্সটেন্ড</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>ইউজার</Label>
+              <Input value={selectedSubscription?.profiles?.mobile_number || ''} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label>বর্তমান শেষ তারিখ</Label>
+              <Input value={selectedSubscription ? formatBDDate(selectedSubscription.end_date) : ''} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label>কত দিন বাড়াবেন?</Label>
+              <Input 
+                type="number" 
+                placeholder="দিন সংখ্যা" 
+                value={extendDays} 
+                onChange={(e) => setExtendDays(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Button variant="outline" size="sm" onClick={() => setExtendDays('7')}>৭ দিন</Button>
+              <Button variant="outline" size="sm" onClick={() => setExtendDays('15')}>১৫ দিন</Button>
+              <Button variant="outline" size="sm" onClick={() => setExtendDays('30')}>৩০ দিন</Button>
+            </div>
+            <Button onClick={handleExtendSubscription} className="w-full">
+              <ArrowUpCircle className="h-4 w-4 mr-2" />
+              এক্সটেন্ড করুন
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };
