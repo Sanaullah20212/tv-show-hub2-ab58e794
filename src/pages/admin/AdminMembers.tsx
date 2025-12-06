@@ -581,12 +581,12 @@ const AdminMembers = () => {
           <main className="flex-1 p-3 sm:p-6 overflow-auto">
             <div className="space-y-4">
               {/* Summary Cards */}
-              <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
                 <Card className="border-l-4 border-l-primary">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-muted-foreground">মোট ইউজার</p>
+                        <p className="text-xs text-muted-foreground font-bengali">মোট ইউজার</p>
                         <p className="text-2xl font-bold">{users.length}</p>
                       </div>
                       <Users className="h-8 w-8 text-primary/50" />
@@ -597,7 +597,7 @@ const AdminMembers = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-muted-foreground">সক্রিয়</p>
+                        <p className="text-xs text-muted-foreground font-bengali">সক্রিয়</p>
                         <p className="text-2xl font-bold">{active.length}</p>
                       </div>
                       <CheckCircle className="h-8 w-8 text-green-500/50" />
@@ -608,10 +608,21 @@ const AdminMembers = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-muted-foreground">পেন্ডিং</p>
+                        <p className="text-xs text-muted-foreground font-bengali">পেন্ডিং</p>
                         <p className="text-2xl font-bold">{pending.length}</p>
                       </div>
                       <Clock className="h-8 w-8 text-orange-500/50" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-l-4 border-l-cyan-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground font-bengali">মোবাইল</p>
+                        <p className="text-2xl font-bold">{users.filter(u => u.user_type === 'mobile').length}</p>
+                      </div>
+                      <Smartphone className="h-8 w-8 text-cyan-500/50" />
                     </div>
                   </CardContent>
                 </Card>
@@ -619,7 +630,7 @@ const AdminMembers = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-muted-foreground">বিজনেস</p>
+                        <p className="text-xs text-muted-foreground font-bengali">বিজনেস</p>
                         <p className="text-2xl font-bold">{users.filter(u => u.user_type === 'business').length}</p>
                       </div>
                       <Briefcase className="h-8 w-8 text-blue-500/50" />
