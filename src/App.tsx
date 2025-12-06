@@ -12,8 +12,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminMembers from "./pages/admin/AdminMembers";
 import AdminSessions from "./pages/admin/AdminSessions";
 import AdminPasswords from "./pages/admin/AdminPasswords";
 import AdminAudit from "./pages/admin/AdminAudit";
@@ -52,8 +51,7 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
-                <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+                <Route path="/admin/members" element={<AdminMembers />} />
                 <Route path="/admin/sessions" element={<AdminSessions />} />
                 <Route path="/admin/passwords" element={<AdminPasswords />} />
                 <Route path="/admin/audit" element={<AdminAudit />} />
